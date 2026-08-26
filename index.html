@@ -188,6 +188,22 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+
+/* ── 캐릭터 QR ── */
+#s-intro .qrbox{margin:0!important}
+.qrlab{font-size:12.5px;font-weight:700;color:#8b8296;margin-bottom:8px;text-align:center}
+.qrgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.qrc{background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;gap:5px;font-family:inherit}
+.qrc svg{width:100%;height:auto;border-radius:8px;display:block;
+  background:#fff;padding:3px;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.qrc span{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:#a98ae0}
+.qrc:active svg{transform:scale(.97)}
+.qrwarn{margin-top:9px;font-size:11.5px;line-height:1.55;color:#e0a04a;text-align:center}
+.qrpop{text-align:center}
+.qrpop svg{width:min(60vh,420px);height:auto;background:#fff;padding:12px;border-radius:14px}
+.qrurl{font-family:var(--mono);font-size:13px;color:#8b8296;margin:14px 0 16px;word-break:break-all}
+.qrpop .b1{width:100%}
 </style>
 <link rel="stylesheet" href="assets/visual-upgrade.css">
 <style>
@@ -366,7 +382,7 @@ function paint(){
         <div><dt>시간</dt><dd>90분</dd></div>
         <div><dt>진행</dt><dd>앱</dd></div>
       </dl>
-      <div class="cast4" id="cast4"></div>
+      <div class="qrbox" id="qrbox"></div>
       <div class="roomcard" id="roomcard"></div>
       <div class="btns"><button class="b1" id="go">시작하기</button></div>
     </div>
@@ -448,7 +464,7 @@ const CAST = ['한소설','백비서','유감독','윤꽃집'];
 
 const PROLOGUE = [
   { k:'제 1 장 · PROLOGUE 1 / 5', t:'그 소설', durationMs:22608,
-    img:'assets/prologue-novel.png',
+    img:'assets/prologue-novel.jpg',
     alt:'비 내리는 저택의 서재, 영화 장비와 초대장 곁에 놓인 미스터리 소설',
     cues:[
       {at:565,text:'소설 〈우울에 빠진 남자〉 들어보셨나요?'},
@@ -471,7 +487,7 @@ const PROLOGUE = [
       '그리고 그의 아내는, 영화제작사 대표 홍대표입니다.'
     ]},
   { k:'제 2 장 · PROLOGUE 2 / 5', t:'축하의 밤', tl:true, durationMs:28260,
-    img:'assets/prologue-party.png',
+    img:'assets/prologue-party.jpg',
     alt:'비 내리는 저택의 밝은 식당에서 다섯 사람이 만찬을 시작하는 모습',
     cues:[
       {at:565,text:'오늘은 바로 이 소설의 영화화 축하 파티가 열리는 날입니다.'},
@@ -490,7 +506,7 @@ const PROLOGUE = [
       '가까운 사람들만 초대되었고, 파티는 예정대로 흘러갔습니다.'
     ]},
   { k:'제 3 장 · PROLOGUE 3 / 5', t:'저녁 8시', durationMs:11304, scream:true,
-    img:'assets/prologue-scream.png',
+    img:'assets/prologue-scream.jpg',
     alt:'비 내리는 저택 복도 끝으로 보이는 식당과 열린 문',
     cues:[
       {at:565,text:'그리고 저녁 8시.'},
@@ -506,7 +522,7 @@ const PROLOGUE = [
       '그리고 저녁 8시.','꺅!','식당에서 비명이 들렸습니다.'
     ]},
   { k:'제 4 장 · PROLOGUE 4 / 5', t:'사건', durationMs:27130,
-    img:'assets/prologue-crime-original.png',
+    img:'assets/prologue-crime-original.jpg',
     alt:'자기 의자에 앉은 채 원형 식탁 위로 쓰러진 홍대표와 앞에 놓인 두 잔',
     cues:[
       {at:565,text:'식당의 원형 테이블. 만찬이 한창이던 자리입니다.'},
@@ -532,7 +548,7 @@ const PROLOGUE = [
       '축하의 밤, 안주인이 숨을 거두었습니다.'
     ]},
   { k:'제 5 장 · PROLOGUE 5 / 5', t:'그리고 지금', durationMs:23738,
-    img:'assets/prologue-investigation.png',
+    img:'assets/prologue-investigation.jpg',
     alt:'저택의 거실에 모인 네 명에게 수사관이 현장 수사 단말을 나눠주는 모습',
     cues:[
       {at:565,text:'경찰이 여러분을 불러모읍니다.'},
@@ -602,7 +618,7 @@ const SCHEDULE = [
 const REVEAL = [
   {big:true, k:'THE CULPRIT', h:'범인은 윤꽃집입니다',
    n:'윤꽃집은 8년 전 자신을 배신한 한소설에게 복수하려고 속이 빈 얼음에 청산가리를 숨겼습니다. 17시 30분 식당에 잠입해 한소설의 자리라고 믿은 유리컵에 얼음을 넣었습니다. 그러나 한소설이 자리를 비운 사이 홍대표가 빈 상석에 앉았고, 결국 홍대표가 독이 녹아든 물을 마셨습니다. 계획된 표적과 실제 피해자가 뒤바뀐 살인이었습니다.',
-   b:`<div class="rv-hero"><img src="assets/reveal-culprit-v2.png" alt="조명이 켜진 꽃집에서 텀블러와 얼음을 든 윤꽃집"></div>
+   b:`<div class="rv-hero"><img src="assets/reveal-culprit-v2.jpg" alt="조명이 켜진 꽃집에서 텀블러와 얼음을 든 윤꽃집"></div>
       <div class="verdict-route">
         <div><span>복수의 표적</span><b>한소설</b><small>8년 전 배신의 당사자</small></div>
         <i>좌석 오판</i>
@@ -612,22 +628,22 @@ const REVEAL = [
       <div class="proof-grid"><div><span>범행 도구</span><b>텀블러 · 속 빈 얼음</b></div><div><span>실행 시각</span><b>17:30–17:40</b></div><div><span>결정적 흔적</span><b>물자국 · 청산가리</b></div></div>`},
   {k:'THE TRICK', h:'세 번 얼린 얼음',
    n:'범행 도구는 겉보기에는 평범한 얼음이었습니다. 가운데가 비도록 얼리고, 송곳으로 구멍을 내 청산가리를 주입한 뒤 다시 물을 채워 봉합했습니다. 얼음이 녹자 숨겨진 독이 유리컵 전체로 퍼졌습니다.',
-   b:`<div class="rv-visual"><img src="assets/reveal-ice-v2.png" alt="속이 비어 있고 내부에 독이 봉인된 얼음의 확대 장면"><span class="evidence-stamp">MURDER WEAPON</span></div>
+   b:`<div class="rv-visual"><img src="assets/reveal-ice-v2.jpg" alt="속이 비어 있고 내부에 독이 봉인된 얼음의 확대 장면"><span class="evidence-stamp">MURDER WEAPON</span></div>
       <div class="process-line"><div><em>01</em><b>얼음 껍질</b><span>가운데가 비도록 얼린다</span></div><i></i><div><em>02</em><b>독 주입</b><span>송곳 구멍으로 청산가리</span></div><i></i><div><em>03</em><b>얼음 봉합</b><span>물을 채워 다시 얼린다</span></div></div>
       <div class="reveal-note"><b>겉은 평범한 얼음</b><span>하지만 녹는 순간, 잔 전체가 독이 됩니다.</span></div>`},
   {k:'THE EXECUTION', h:'17시 30분, 10분의 공백',
    n:'윤꽃집은 화장실에 다녀오겠다고 말한 뒤 식당으로 향했습니다. 17시 35분 텀블러의 독 얼음을 상석 유리컵에 넣었고, 돌아오는 길에 한소설과 마주쳤습니다. 비에 젖은 신발이 남긴 물자국이 이 이동 경로를 증명했습니다.',
-   b:`<div class="rv-visual"><img src="assets/reveal-gap-v2.png" alt="17시 30분 저택 복도에 이어진 젖은 발자국"><span class="evidence-stamp">10 MINUTES MISSING</span></div>
+   b:`<div class="rv-visual"><img src="assets/reveal-gap-v2.jpg" alt="17시 30분 저택 복도에 이어진 젖은 발자국"><span class="evidence-stamp">10 MINUTES MISSING</span></div>
       <div class="crime-timeline"><div><time>17:30</time><b>자리 이탈</b><span>“화장실에 다녀올게요.”</span></div><div><time>17:35</time><b>식당 잠입</b><span>상석 유리컵에 독 얼음</span></div><div><time>17:40</time><b>복도 조우</b><span>한소설과 마주친 뒤 복귀</span></div></div>
       <div class="clue-callout"><span>결정적 이동 흔적</span><b>빗물에 젖은 신발 → 식당 바닥의 물자국</b></div>`},
   {k:'THE MISTAKE', h:'의자 하나가 만든 비극',
    n:'원형 테이블이라 상석은 분명하지 않았습니다. 윤꽃집은 파티의 주인공 한소설이 상석에 앉을 것이라 넘겨짚었습니다. 그러나 19시 30분 한소설이 주방에 간 사이, 늦게 들어온 홍대표가 빈 자리에 앉아 독 얼음이 든 물을 마셨습니다.',
-   b:`<div class="rv-visual"><img src="assets/reveal-seat-v2.png" alt="밝은 촛불이 켜진 원형 식탁의 비어 있던 상석과 잘못 놓인 유리컵"><span class="evidence-stamp">THE WRONG SEAT</span></div>
+   b:`<div class="rv-visual"><img src="assets/reveal-seat-v2.jpg" alt="밝은 촛불이 켜진 원형 식탁의 비어 있던 상석과 잘못 놓인 유리컵"><span class="evidence-stamp">THE WRONG SEAT</span></div>
       <div class="seat-swap"><div><span>윤꽃집이 예상한 자리</span><b>한소설</b><small>파티의 주인공</small></div><strong>주방에 간 사이<br><i>→</i></strong><div class="fatal"><span>실제로 앉은 사람</span><b>홍대표</b><small>늦게 도착한 피해자</small></div></div>
       <p class="rv-lead compact">독은 정확히 준비됐지만, 사람은 예상한 자리에 없었습니다. 이 살인은 치밀한 계획 속 <b>단 하나의 잘못된 전제</b>에서 벌어졌습니다.</p>`},
   {k:'FOUR POISONS', h:'네 사람, 네 개의 독',
    n:'그날 저택에는 네 종류의 독이 있었습니다. 윤꽃집의 청산가리는 얼음을 통해 한소설을 노렸지만 홍대표를 죽였습니다. 수프의 살충제와 과일청의 니코틴도 홍대표를 겨냥했으나 치사량이 아니었습니다. 물병의 투구꽃 독은 한소설을 노렸지만 마시지 않았습니다. 실제 사인은 청산가리였습니다.',
-   b:`<div class="rv-visual"><img src="assets/reveal-poisons-v2.png" alt="선명한 조명 아래 얼음과 수프, 생수병과 과일청 병으로 구성된 네 가지 독극물 증거"><span class="evidence-stamp">4 ATTEMPTS · 1 DEATH</span></div>
+   b:`<div class="rv-visual"><img src="assets/reveal-poisons-v2.jpg" alt="선명한 조명 아래 얼음과 수프, 생수병과 과일청 병으로 구성된 네 가지 독극물 증거"><span class="evidence-stamp">4 ATTEMPTS · 1 DEATH</span></div>
       <div class="poison-board">
         <div class="cause"><em>치명적</em><b>청산가리</b><span>얼음 → 한소설 예정</span><small>윤꽃집 · 홍대표 사망 원인</small></div>
         <div><em>미수</em><b>살충제</b><span>수프 → 홍대표</span><small>한소설 · 치사량 미달</small></div>
@@ -636,17 +652,17 @@ const REVEAL = [
       </div>`},
   {k:'THE MOTIVE · 1', h:'8년 전, 두 사람은 연인이었습니다',
    n:'8년 전 윤꽃집과 한소설은 연인이었습니다. 제약회사 연구원이던 윤꽃집은 무명 작가 한소설의 성공을 돕고 싶어 의약품 연구 정보와 회사 자료를 건넸습니다. 사랑으로 내어준 비밀은 곧 윤꽃집의 삶을 무너뜨리는 증거가 됐습니다.',
-   b:`<div class="rv-visual cinematic"><img src="assets/reveal-past-v2.png" alt="따뜻한 조명 아래 8년 전 원고와 연구 자료를 함께 보던 윤꽃집과 한소설"></div>
+   b:`<div class="rv-visual cinematic"><img src="assets/reveal-past-v2.jpg" alt="따뜻한 조명 아래 8년 전 원고와 연구 자료를 함께 보던 윤꽃집과 한소설"></div>
       <div class="memory-flow"><div><b>연인</b><span>독서로 가까워진 두 사람</span></div><i>→</i><div><b>연구 정보</b><span>윤꽃집이 자료를 제공</span></div><i>→</i><div><b>작가의 꿈</b><span>한소설의 추리소설</span></div></div>
       <div class="reveal-note warning"><b>사랑으로 건넨 비밀</b><span>그 자료는 곧 가장 잔인한 배신의 도구가 됩니다.</span></div>`},
   {k:'THE MOTIVE · 2', h:'그리고 버려졌습니다',
    n:'한소설의 소설로 모방범죄가 일어나자 그는 이슈를 덮기 위해 윤꽃집의 가방에서 회사 기밀 서류를 훔쳐 언론에 흘렸습니다. 윤꽃집은 불명예 해고됐고, 한소설은 일방적으로 이별을 통보한 뒤 사라졌습니다. 윤꽃집은 사랑과 경력과 미래를 한꺼번에 잃었습니다.',
-   b:`<div class="rv-visual cinematic"><img src="assets/reveal-betrayal-v2.png" alt="기밀 문서를 가방에 숨겨 가져가는 한소설의 과거 장면"><span class="evidence-stamp">8 YEARS AGO</span></div>
+   b:`<div class="rv-visual cinematic"><img src="assets/reveal-betrayal-v2.jpg" alt="기밀 문서를 가방에 숨겨 가져가는 한소설의 과거 장면"><span class="evidence-stamp">8 YEARS AGO</span></div>
       <div class="collapse-chain"><div><span>기밀 서류 탈취</span><small>윤꽃집의 가방</small></div><i>→</i><div><span>언론 제보</span><small>모방범죄 이슈 덮기</small></div><i>→</i><div class="fatal"><span>불명예 해고</span><small>경력과 미래 붕괴</small></div></div>
       <blockquote class="rv-quote">사랑도, 경력도, 미래도 — 그날 한꺼번에 사라졌습니다.</blockquote>`},
   {k:'THE TRIGGER', h:'왜 하필 그날이었나',
    n:'한소설은 협박편지를 윤꽃집이 보냈다고 오해했고, 파티에 초대해 아내 앞에서 망신을 주려 했습니다. 김안마가 그 계획을 윤꽃집에게 귀띔했습니다. 8년 전의 배신이 되풀이된다고 느낀 윤꽃집은 망신당하기 전에 먼저 죽이기로 결심했습니다.',
-   b:`<div class="rv-visual cinematic"><img src="assets/reveal-trigger-v2.png" alt="따뜻한 실내 조명과 빗빛이 교차하는 꽃집에서 결심하는 윤꽃집"><span class="evidence-stamp">THE FINAL TRIGGER</span></div>
+   b:`<div class="rv-visual cinematic"><img src="assets/reveal-trigger-v2.jpg" alt="따뜻한 실내 조명과 빗빛이 교차하는 꽃집에서 결심하는 윤꽃집"><span class="evidence-stamp">THE FINAL TRIGGER</span></div>
       <div class="trigger-stack"><div><em>01</em><span>한소설이 협박편지를 윤꽃집의 소행으로 오해</span></div><div><em>02</em><span>파티에 불러 아내 앞에서 망신줄 계획</span></div><div><em>03</em><span>김안마가 그 계획을 윤꽃집에게 전달</span></div><div class="fatal"><em>04</em><span>“또 당하기 전에 먼저 죽인다.”</span></div></div>`},
   {k:'THE IRONY', h:'세 겹의 오해',
    n:'협박편지의 실제 발신자는 백비서였습니다. 한소설은 그 편지를 윤꽃집이 보냈다고 오해했고, 윤꽃집을 공개적으로 망신주려 했습니다. 윤꽃집은 편지와 아무 상관이 없었지만, 8년 전의 복수로 한소설을 죽이려 했습니다. 그리고 잘못 놓인 얼음 때문에 홍대표가 죽었습니다.',
@@ -659,7 +675,7 @@ const REVEAL = [
       <blockquote class="rv-quote final">홍대표를 겨눈 시도는 둘이나 있었지만, 정작 그를 죽인 독은 한소설을 향해 있었습니다.</blockquote>`},
   {k:'END', h:'수고하셨습니다',
    n:'당신은 네 종류의 독과 수많은 거짓말 사이에서 진실을 찾아냈습니다. 저택 살인사건은 종결되었습니다.',
-   b:`<div class="rv-finale"><img src="assets/mansion-dining.png" alt="사건이 끝난 뒤 텅 빈 저택의 식당"><div><span>액자 3부작 · 제2부</span><b>사건 종결</b><small>당신은 모든 거짓말 사이에서 진실을 찾아냈습니다.</small></div></div>
+   b:`<div class="rv-finale"><img src="assets/mansion-dining.jpg" alt="사건이 끝난 뒤 텅 빈 저택의 식당"><div><span>액자 3부작 · 제2부</span><b>사건 종결</b><small>당신은 모든 거짓말 사이에서 진실을 찾아냈습니다.</small></div></div>
       <div class="case-summary"><span>범인 <b>윤꽃집</b></span><span>사인 <b>청산가리</b></span><span>계획된 표적 <b>한소설</b></span><span>실제 피해자 <b>홍대표</b></span></div>`}
 ];
 
@@ -887,9 +903,6 @@ function revealOneUnseen(){
 
 
 
-/* 인트로 캐스트 (랜덤 배정 느낌) */
-$('#cast4').innerHTML = [...CAST].sort(()=>Math.random()-.5)
-  .map(c=>`<span>${c}</span>`).join('');
 openRoom();
 
 let pro=0, proMode='stopped', proElapsed=0, proStarted=0, proFinished=false;
@@ -1237,6 +1250,36 @@ function paintRev(){
 }
 
 /* 모달 */
+const QR_BASE='https://isensmark.github.io/isens-mm/';
+const QR_DATA={1:{n:33,d:'M0 0h7v1h-7zM8 0h3v1h-3zM14 0h1v1h-1zM17 0h4v1h-4zM23 0h1v1h-1zM26 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM9 1h2v1h-2zM13 1h1v1h-1zM15 1h1v1h-1zM17 1h1v1h-1zM22 1h1v1h-1zM26 1h1v1h-1zM32 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h2v1h-2zM12 2h1v1h-1zM17 2h2v1h-2zM20 2h5v1h-5zM26 2h1v1h-1zM28 2h3v1h-3zM32 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM10 3h1v1h-1zM12 3h1v1h-1zM24 3h1v1h-1zM26 3h1v1h-1zM28 3h3v1h-3zM32 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h3v1h-3zM12 4h1v1h-1zM14 4h1v1h-1zM17 4h2v1h-2zM22 4h3v1h-3zM26 4h1v1h-1zM28 4h3v1h-3zM32 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h2v1h-2zM13 5h3v1h-3zM18 5h1v1h-1zM21 5h2v1h-2zM26 5h1v1h-1zM32 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h7v1h-7zM10 7h3v1h-3zM14 7h1v1h-1zM18 7h1v1h-1zM21 7h2v1h-2zM1 8h7v1h-7zM9 8h1v1h-1zM12 8h2v1h-2zM15 8h1v1h-1zM17 8h1v1h-1zM20 8h1v1h-1zM22 8h2v1h-2zM27 8h2v1h-2zM32 8h1v1h-1zM1 9h2v1h-2zM7 9h1v1h-1zM9 9h1v1h-1zM12 9h1v1h-1zM16 9h1v1h-1zM19 9h3v1h-3zM23 9h1v1h-1zM26 9h2v1h-2zM29 9h2v1h-2zM32 9h1v1h-1zM3 10h1v1h-1zM5 10h2v1h-2zM8 10h5v1h-5zM14 10h3v1h-3zM18 10h1v1h-1zM20 10h2v1h-2zM24 10h2v1h-2zM28 10h1v1h-1zM30 10h2v1h-2zM1 11h4v1h-4zM7 11h2v1h-2zM12 11h2v1h-2zM21 11h3v1h-3zM25 11h1v1h-1zM28 11h3v1h-3zM32 11h1v1h-1zM0 12h2v1h-2zM4 12h1v1h-1zM6 12h1v1h-1zM8 12h2v1h-2zM12 12h1v1h-1zM14 12h1v1h-1zM16 12h1v1h-1zM18 12h2v1h-2zM23 12h3v1h-3zM27 12h3v1h-3zM31 12h2v1h-2zM0 13h1v1h-1zM2 13h1v1h-1zM7 13h3v1h-3zM11 13h4v1h-4zM16 13h2v1h-2zM21 13h1v1h-1zM23 13h1v1h-1zM26 13h1v1h-1zM31 13h2v1h-2zM0 14h1v1h-1zM2 14h2v1h-2zM6 14h1v1h-1zM8 14h2v1h-2zM13 14h4v1h-4zM21 14h1v1h-1zM25 14h2v1h-2zM28 14h4v1h-4zM1 15h1v1h-1zM7 15h2v1h-2zM10 15h2v1h-2zM16 15h1v1h-1zM18 15h1v1h-1zM20 15h3v1h-3zM25 15h3v1h-3zM29 15h2v1h-2zM0 16h1v1h-1zM2 16h2v1h-2zM6 16h1v1h-1zM8 16h1v1h-1zM10 16h1v1h-1zM12 16h2v1h-2zM18 16h2v1h-2zM22 16h4v1h-4zM27 16h2v1h-2zM32 16h1v1h-1zM0 17h1v1h-1zM2 17h4v1h-4zM9 17h1v1h-1zM12 17h2v1h-2zM17 17h1v1h-1zM19 17h2v1h-2zM22 17h2v1h-2zM26 17h2v1h-2zM29 17h2v1h-2zM32 17h1v1h-1zM1 18h1v1h-1zM3 18h6v1h-6zM11 18h1v1h-1zM14 18h4v1h-4zM20 18h1v1h-1zM22 18h1v1h-1zM25 18h4v1h-4zM30 18h1v1h-1zM0 19h1v1h-1zM2 19h4v1h-4zM7 19h3v1h-3zM11 19h11v1h-11zM26 19h5v1h-5zM32 19h1v1h-1zM0 20h8v1h-8zM10 20h1v1h-1zM12 20h2v1h-2zM15 20h2v1h-2zM18 20h1v1h-1zM22 20h1v1h-1zM24 20h2v1h-2zM28 20h2v1h-2zM0 21h1v1h-1zM3 21h1v1h-1zM11 21h2v1h-2zM14 21h4v1h-4zM19 21h3v1h-3zM23 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM32 21h1v1h-1zM0 22h1v1h-1zM2 22h1v1h-1zM4 22h1v1h-1zM6 22h2v1h-2zM10 22h2v1h-2zM13 22h1v1h-1zM16 22h3v1h-3zM20 22h1v1h-1zM26 22h1v1h-1zM29 22h1v1h-1zM31 22h1v1h-1zM0 23h1v1h-1zM3 23h3v1h-3zM7 23h3v1h-3zM11 23h1v1h-1zM13 23h4v1h-4zM20 23h2v1h-2zM25 23h1v1h-1zM27 23h2v1h-2zM30 23h3v1h-3zM0 24h1v1h-1zM2 24h1v1h-1zM6 24h2v1h-2zM10 24h1v1h-1zM14 24h1v1h-1zM18 24h2v1h-2zM22 24h7v1h-7zM32 24h1v1h-1zM8 25h1v1h-1zM10 25h1v1h-1zM12 25h1v1h-1zM14 25h1v1h-1zM16 25h5v1h-5zM24 25h1v1h-1zM28 25h1v1h-1zM30 25h1v1h-1zM32 25h1v1h-1zM0 26h7v1h-7zM8 26h5v1h-5zM21 26h1v1h-1zM23 26h2v1h-2zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h2v1h-2zM0 27h1v1h-1zM6 27h1v1h-1zM8 27h2v1h-2zM12 27h1v1h-1zM15 27h1v1h-1zM17 27h5v1h-5zM23 27h2v1h-2zM28 27h4v1h-4zM0 28h1v1h-1zM2 28h3v1h-3zM6 28h1v1h-1zM8 28h1v1h-1zM19 28h1v1h-1zM22 28h1v1h-1zM24 28h6v1h-6zM31 28h1v1h-1zM0 29h1v1h-1zM2 29h3v1h-3zM6 29h1v1h-1zM8 29h1v1h-1zM12 29h4v1h-4zM17 29h4v1h-4zM22 29h2v1h-2zM25 29h1v1h-1zM28 29h2v1h-2zM32 29h1v1h-1zM0 30h1v1h-1zM2 30h3v1h-3zM6 30h1v1h-1zM8 30h2v1h-2zM11 30h4v1h-4zM24 30h4v1h-4zM29 30h1v1h-1zM0 31h1v1h-1zM6 31h1v1h-1zM8 31h1v1h-1zM12 31h1v1h-1zM14 31h1v1h-1zM17 31h1v1h-1zM20 31h3v1h-3zM28 31h3v1h-3zM0 32h7v1h-7zM10 32h1v1h-1zM12 32h1v1h-1zM15 32h1v1h-1zM24 32h4v1h-4zM31 32h1v1h-1z'},2:{n:33,d:'M0 0h7v1h-7zM8 0h3v1h-3zM13 0h2v1h-2zM17 0h4v1h-4zM23 0h1v1h-1zM26 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM10 1h1v1h-1zM13 1h1v1h-1zM15 1h1v1h-1zM17 1h1v1h-1zM22 1h1v1h-1zM26 1h1v1h-1zM32 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM10 2h1v1h-1zM12 2h3v1h-3zM17 2h2v1h-2zM20 2h5v1h-5zM26 2h1v1h-1zM28 2h3v1h-3zM32 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM12 3h2v1h-2zM16 3h1v1h-1zM24 3h1v1h-1zM26 3h1v1h-1zM28 3h3v1h-3zM32 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h2v1h-2zM11 4h1v1h-1zM16 4h3v1h-3zM22 4h3v1h-3zM26 4h1v1h-1zM28 4h3v1h-3zM32 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h2v1h-2zM11 5h5v1h-5zM18 5h1v1h-1zM21 5h2v1h-2zM26 5h1v1h-1zM32 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h7v1h-7zM10 7h2v1h-2zM14 7h3v1h-3zM18 7h1v1h-1zM21 7h2v1h-2zM1 8h7v1h-7zM9 8h1v1h-1zM11 8h3v1h-3zM17 8h1v1h-1zM20 8h1v1h-1zM22 8h2v1h-2zM27 8h2v1h-2zM32 8h1v1h-1zM1 9h2v1h-2zM7 9h1v1h-1zM12 9h1v1h-1zM16 9h1v1h-1zM19 9h3v1h-3zM23 9h1v1h-1zM26 9h2v1h-2zM29 9h2v1h-2zM32 9h1v1h-1zM3 10h1v1h-1zM6 10h1v1h-1zM8 10h2v1h-2zM11 10h2v1h-2zM15 10h2v1h-2zM18 10h1v1h-1zM20 10h1v1h-1zM24 10h2v1h-2zM28 10h1v1h-1zM30 10h2v1h-2zM2 11h2v1h-2zM7 11h4v1h-4zM12 11h1v1h-1zM14 11h1v1h-1zM21 11h1v1h-1zM23 11h1v1h-1zM25 11h1v1h-1zM28 11h3v1h-3zM32 11h1v1h-1zM1 12h1v1h-1zM3 12h2v1h-2zM6 12h1v1h-1zM8 12h3v1h-3zM12 12h3v1h-3zM18 12h2v1h-2zM23 12h3v1h-3zM27 12h3v1h-3zM31 12h2v1h-2zM0 13h1v1h-1zM3 13h1v1h-1zM5 13h1v1h-1zM7 13h3v1h-3zM12 13h2v1h-2zM15 13h1v1h-1zM17 13h1v1h-1zM21 13h1v1h-1zM23 13h1v1h-1zM26 13h1v1h-1zM31 13h2v1h-2zM0 14h1v1h-1zM2 14h1v1h-1zM6 14h4v1h-4zM11 14h4v1h-4zM21 14h1v1h-1zM25 14h2v1h-2zM28 14h4v1h-4zM1 15h1v1h-1zM7 15h1v1h-1zM10 15h3v1h-3zM15 15h2v1h-2zM18 15h1v1h-1zM20 15h3v1h-3zM25 15h3v1h-3zM29 15h2v1h-2zM0 16h1v1h-1zM2 16h2v1h-2zM6 16h1v1h-1zM8 16h1v1h-1zM10 16h1v1h-1zM12 16h2v1h-2zM15 16h1v1h-1zM18 16h2v1h-2zM22 16h4v1h-4zM27 16h2v1h-2zM32 16h1v1h-1zM0 17h1v1h-1zM2 17h2v1h-2zM5 17h1v1h-1zM9 17h1v1h-1zM12 17h1v1h-1zM17 17h1v1h-1zM19 17h2v1h-2zM22 17h2v1h-2zM26 17h2v1h-2zM29 17h2v1h-2zM32 17h1v1h-1zM3 18h2v1h-2zM6 18h4v1h-4zM11 18h1v1h-1zM14 18h5v1h-5zM20 18h1v1h-1zM22 18h1v1h-1zM25 18h4v1h-4zM30 18h1v1h-1zM2 19h3v1h-3zM7 19h2v1h-2zM10 19h3v1h-3zM15 19h7v1h-7zM26 19h5v1h-5zM32 19h1v1h-1zM0 20h3v1h-3zM4 20h5v1h-5zM15 20h4v1h-4zM22 20h1v1h-1zM24 20h2v1h-2zM28 20h2v1h-2zM0 21h3v1h-3zM5 21h1v1h-1zM8 21h1v1h-1zM11 21h1v1h-1zM15 21h1v1h-1zM17 21h5v1h-5zM23 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM32 21h1v1h-1zM0 22h1v1h-1zM4 22h1v1h-1zM6 22h3v1h-3zM10 22h1v1h-1zM13 22h1v1h-1zM15 22h4v1h-4zM20 22h1v1h-1zM26 22h1v1h-1zM29 22h1v1h-1zM31 22h1v1h-1zM0 23h1v1h-1zM2 23h4v1h-4zM9 23h1v1h-1zM12 23h3v1h-3zM20 23h2v1h-2zM25 23h1v1h-1zM27 23h2v1h-2zM30 23h3v1h-3zM0 24h1v1h-1zM2 24h1v1h-1zM6 24h2v1h-2zM10 24h1v1h-1zM14 24h1v1h-1zM18 24h2v1h-2zM22 24h7v1h-7zM32 24h1v1h-1zM8 25h3v1h-3zM12 25h1v1h-1zM14 25h1v1h-1zM16 25h1v1h-1zM18 25h3v1h-3zM24 25h1v1h-1zM28 25h1v1h-1zM30 25h1v1h-1zM32 25h1v1h-1zM0 26h7v1h-7zM8 26h2v1h-2zM11 26h2v1h-2zM17 26h2v1h-2zM21 26h1v1h-1zM23 26h2v1h-2zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h2v1h-2zM0 27h1v1h-1zM6 27h1v1h-1zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h1v1h-1zM15 27h1v1h-1zM17 27h1v1h-1zM19 27h3v1h-3zM23 27h2v1h-2zM28 27h4v1h-4zM0 28h1v1h-1zM2 28h3v1h-3zM6 28h1v1h-1zM8 28h1v1h-1zM10 28h1v1h-1zM14 28h1v1h-1zM19 28h1v1h-1zM22 28h1v1h-1zM24 28h6v1h-6zM31 28h1v1h-1zM0 29h1v1h-1zM2 29h3v1h-3zM6 29h1v1h-1zM8 29h1v1h-1zM10 29h1v1h-1zM12 29h6v1h-6zM19 29h2v1h-2zM22 29h2v1h-2zM25 29h1v1h-1zM28 29h2v1h-2zM32 29h1v1h-1zM0 30h1v1h-1zM2 30h3v1h-3zM6 30h1v1h-1zM8 30h2v1h-2zM11 30h1v1h-1zM13 30h2v1h-2zM24 30h4v1h-4zM29 30h1v1h-1zM0 31h1v1h-1zM6 31h1v1h-1zM8 31h1v1h-1zM11 31h2v1h-2zM14 31h4v1h-4zM20 31h3v1h-3zM28 31h3v1h-3zM0 32h7v1h-7zM10 32h1v1h-1zM12 32h1v1h-1zM24 32h4v1h-4zM31 32h1v1h-1z'},3:{n:33,d:'M0 0h7v1h-7zM8 0h3v1h-3zM14 0h1v1h-1zM17 0h4v1h-4zM23 0h1v1h-1zM26 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM10 1h1v1h-1zM13 1h1v1h-1zM15 1h1v1h-1zM17 1h1v1h-1zM22 1h1v1h-1zM26 1h1v1h-1zM32 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h1v1h-1zM12 2h3v1h-3zM17 2h2v1h-2zM20 2h5v1h-5zM26 2h1v1h-1zM28 2h3v1h-3zM32 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM9 3h1v1h-1zM12 3h1v1h-1zM16 3h1v1h-1zM24 3h1v1h-1zM26 3h1v1h-1zM28 3h3v1h-3zM32 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h3v1h-3zM16 4h3v1h-3zM22 4h3v1h-3zM26 4h1v1h-1zM28 4h3v1h-3zM32 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h2v1h-2zM12 5h3v1h-3zM18 5h1v1h-1zM21 5h2v1h-2zM26 5h1v1h-1zM32 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h7v1h-7zM10 7h3v1h-3zM14 7h1v1h-1zM16 7h1v1h-1zM18 7h1v1h-1zM21 7h2v1h-2zM1 8h7v1h-7zM9 8h1v1h-1zM11 8h3v1h-3zM15 8h1v1h-1zM17 8h1v1h-1zM20 8h1v1h-1zM22 8h2v1h-2zM27 8h2v1h-2zM32 8h1v1h-1zM1 9h2v1h-2zM4 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM12 9h2v1h-2zM16 9h1v1h-1zM19 9h3v1h-3zM23 9h1v1h-1zM26 9h2v1h-2zM29 9h2v1h-2zM32 9h1v1h-1zM3 10h1v1h-1zM5 10h2v1h-2zM8 10h1v1h-1zM11 10h2v1h-2zM14 10h3v1h-3zM18 10h1v1h-1zM20 10h1v1h-1zM24 10h2v1h-2zM28 10h1v1h-1zM30 10h2v1h-2zM0 11h1v1h-1zM2 11h3v1h-3zM7 11h2v1h-2zM12 11h1v1h-1zM14 11h1v1h-1zM21 11h3v1h-3zM25 11h1v1h-1zM28 11h3v1h-3zM32 11h1v1h-1zM0 12h1v1h-1zM4 12h3v1h-3zM8 12h1v1h-1zM12 12h1v1h-1zM14 12h1v1h-1zM18 12h2v1h-2zM23 12h3v1h-3zM27 12h3v1h-3zM31 12h2v1h-2zM0 13h1v1h-1zM5 13h1v1h-1zM7 13h5v1h-5zM13 13h1v1h-1zM16 13h2v1h-2zM21 13h1v1h-1zM23 13h1v1h-1zM26 13h1v1h-1zM31 13h2v1h-2zM0 14h1v1h-1zM6 14h1v1h-1zM9 14h1v1h-1zM11 14h1v1h-1zM13 14h4v1h-4zM21 14h1v1h-1zM25 14h2v1h-2zM28 14h4v1h-4zM1 15h1v1h-1zM10 15h1v1h-1zM12 15h1v1h-1zM15 15h2v1h-2zM18 15h1v1h-1zM20 15h3v1h-3zM25 15h3v1h-3zM29 15h2v1h-2zM0 16h1v1h-1zM2 16h2v1h-2zM6 16h1v1h-1zM8 16h1v1h-1zM10 16h1v1h-1zM12 16h2v1h-2zM18 16h2v1h-2zM22 16h4v1h-4zM27 16h2v1h-2zM32 16h1v1h-1zM2 17h2v1h-2zM5 17h1v1h-1zM9 17h1v1h-1zM12 17h2v1h-2zM19 17h2v1h-2zM22 17h2v1h-2zM26 17h2v1h-2zM29 17h2v1h-2zM32 17h1v1h-1zM1 18h1v1h-1zM3 18h7v1h-7zM11 18h1v1h-1zM14 18h4v1h-4zM20 18h1v1h-1zM22 18h1v1h-1zM25 18h4v1h-4zM30 18h1v1h-1zM0 19h1v1h-1zM2 19h2v1h-2zM7 19h2v1h-2zM11 19h2v1h-2zM15 19h2v1h-2zM18 19h4v1h-4zM26 19h5v1h-5zM32 19h1v1h-1zM0 20h1v1h-1zM2 20h1v1h-1zM6 20h3v1h-3zM10 20h1v1h-1zM13 20h1v1h-1zM15 20h2v1h-2zM18 20h1v1h-1zM22 20h1v1h-1zM24 20h2v1h-2zM28 20h2v1h-2zM0 21h2v1h-2zM3 21h1v1h-1zM8 21h1v1h-1zM11 21h1v1h-1zM15 21h7v1h-7zM23 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM32 21h1v1h-1zM0 22h1v1h-1zM2 22h1v1h-1zM4 22h1v1h-1zM6 22h1v1h-1zM10 22h1v1h-1zM12 22h2v1h-2zM15 22h4v1h-4zM20 22h1v1h-1zM26 22h1v1h-1zM29 22h1v1h-1zM31 22h1v1h-1zM0 23h1v1h-1zM4 23h2v1h-2zM8 23h2v1h-2zM13 23h3v1h-3zM20 23h2v1h-2zM25 23h1v1h-1zM27 23h2v1h-2zM30 23h3v1h-3zM0 24h1v1h-1zM6 24h1v1h-1zM10 24h2v1h-2zM14 24h1v1h-1zM18 24h2v1h-2zM22 24h7v1h-7zM32 24h1v1h-1zM8 25h3v1h-3zM12 25h3v1h-3zM16 25h5v1h-5zM24 25h1v1h-1zM28 25h1v1h-1zM30 25h1v1h-1zM32 25h1v1h-1zM0 26h7v1h-7zM8 26h7v1h-7zM18 26h1v1h-1zM21 26h1v1h-1zM23 26h2v1h-2zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h2v1h-2zM0 27h1v1h-1zM6 27h1v1h-1zM8 27h3v1h-3zM12 27h1v1h-1zM14 27h2v1h-2zM17 27h1v1h-1zM19 27h3v1h-3zM23 27h2v1h-2zM28 27h4v1h-4zM0 28h1v1h-1zM2 28h3v1h-3zM6 28h1v1h-1zM8 28h3v1h-3zM13 28h1v1h-1zM18 28h2v1h-2zM22 28h1v1h-1zM24 28h6v1h-6zM31 28h1v1h-1zM0 29h1v1h-1zM2 29h3v1h-3zM6 29h1v1h-1zM8 29h1v1h-1zM12 29h2v1h-2zM15 29h1v1h-1zM17 29h1v1h-1zM19 29h2v1h-2zM22 29h2v1h-2zM25 29h1v1h-1zM28 29h2v1h-2zM32 29h1v1h-1zM0 30h1v1h-1zM2 30h3v1h-3zM6 30h1v1h-1zM8 30h2v1h-2zM11 30h6v1h-6zM24 30h4v1h-4zM29 30h1v1h-1zM0 31h1v1h-1zM6 31h1v1h-1zM8 31h1v1h-1zM11 31h2v1h-2zM14 31h2v1h-2zM17 31h1v1h-1zM20 31h3v1h-3zM28 31h3v1h-3zM0 32h7v1h-7zM10 32h1v1h-1zM12 32h1v1h-1zM24 32h4v1h-4zM31 32h1v1h-1z'},4:{n:33,d:'M0 0h7v1h-7zM8 0h3v1h-3zM13 0h2v1h-2zM17 0h4v1h-4zM23 0h1v1h-1zM26 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM15 1h1v1h-1zM17 1h1v1h-1zM22 1h1v1h-1zM26 1h1v1h-1zM32 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h1v1h-1zM12 2h1v1h-1zM14 2h1v1h-1zM17 2h2v1h-2zM20 2h5v1h-5zM26 2h1v1h-1zM28 2h3v1h-3zM32 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM9 3h1v1h-1zM24 3h1v1h-1zM26 3h1v1h-1zM28 3h3v1h-3zM32 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h2v1h-2zM11 4h1v1h-1zM14 4h2v1h-2zM17 4h2v1h-2zM22 4h3v1h-3zM26 4h1v1h-1zM28 4h3v1h-3zM32 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h2v1h-2zM11 5h6v1h-6zM18 5h1v1h-1zM21 5h2v1h-2zM26 5h1v1h-1zM32 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h7v1h-7zM10 7h1v1h-1zM14 7h2v1h-2zM18 7h1v1h-1zM21 7h2v1h-2zM1 8h7v1h-7zM9 8h1v1h-1zM12 8h2v1h-2zM15 8h1v1h-1zM17 8h1v1h-1zM20 8h1v1h-1zM22 8h2v1h-2zM27 8h2v1h-2zM32 8h1v1h-1zM1 9h2v1h-2zM4 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM12 9h2v1h-2zM16 9h1v1h-1zM19 9h3v1h-3zM23 9h1v1h-1zM26 9h2v1h-2zM29 9h2v1h-2zM32 9h1v1h-1zM0 10h1v1h-1zM3 10h1v1h-1zM6 10h1v1h-1zM8 10h1v1h-1zM11 10h3v1h-3zM15 10h2v1h-2zM18 10h1v1h-1zM20 10h3v1h-3zM24 10h2v1h-2zM28 10h1v1h-1zM30 10h2v1h-2zM2 11h2v1h-2zM5 11h1v1h-1zM7 11h4v1h-4zM12 11h1v1h-1zM21 11h1v1h-1zM23 11h1v1h-1zM25 11h1v1h-1zM28 11h3v1h-3zM32 11h1v1h-1zM3 12h1v1h-1zM6 12h1v1h-1zM8 12h2v1h-2zM12 12h1v1h-1zM16 12h1v1h-1zM18 12h2v1h-2zM23 12h3v1h-3zM27 12h3v1h-3zM31 12h2v1h-2zM0 13h1v1h-1zM2 13h1v1h-1zM5 13h1v1h-1zM7 13h4v1h-4zM13 13h1v1h-1zM17 13h1v1h-1zM21 13h1v1h-1zM23 13h1v1h-1zM26 13h1v1h-1zM31 13h2v1h-2zM0 14h1v1h-1zM6 14h2v1h-2zM9 14h1v1h-1zM11 14h1v1h-1zM13 14h2v1h-2zM21 14h1v1h-1zM25 14h2v1h-2zM28 14h4v1h-4zM1 15h2v1h-2zM7 15h1v1h-1zM10 15h1v1h-1zM12 15h1v1h-1zM18 15h1v1h-1zM20 15h3v1h-3zM25 15h3v1h-3zM29 15h2v1h-2zM0 16h1v1h-1zM2 16h2v1h-2zM6 16h3v1h-3zM10 16h4v1h-4zM15 16h1v1h-1zM18 16h2v1h-2zM22 16h4v1h-4zM27 16h2v1h-2zM32 16h1v1h-1zM2 17h4v1h-4zM9 17h1v1h-1zM12 17h1v1h-1zM19 17h2v1h-2zM22 17h2v1h-2zM26 17h2v1h-2zM29 17h2v1h-2zM32 17h1v1h-1zM3 18h1v1h-1zM6 18h3v1h-3zM10 18h2v1h-2zM13 18h6v1h-6zM20 18h1v1h-1zM22 18h1v1h-1zM25 18h4v1h-4zM30 18h1v1h-1zM1 19h3v1h-3zM5 19h1v1h-1zM7 19h3v1h-3zM11 19h3v1h-3zM15 19h7v1h-7zM26 19h5v1h-5zM32 19h1v1h-1zM1 20h2v1h-2zM6 20h3v1h-3zM13 20h1v1h-1zM15 20h2v1h-2zM22 20h1v1h-1zM24 20h2v1h-2zM28 20h2v1h-2zM0 21h2v1h-2zM3 21h1v1h-1zM7 21h2v1h-2zM14 21h2v1h-2zM17 21h5v1h-5zM23 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM32 21h1v1h-1zM0 22h1v1h-1zM2 22h3v1h-3zM6 22h1v1h-1zM8 22h1v1h-1zM10 22h4v1h-4zM17 22h2v1h-2zM20 22h1v1h-1zM26 22h1v1h-1zM29 22h1v1h-1zM31 22h1v1h-1zM0 23h1v1h-1zM2 23h1v1h-1zM4 23h2v1h-2zM7 23h3v1h-3zM13 23h2v1h-2zM16 23h1v1h-1zM20 23h2v1h-2zM25 23h1v1h-1zM27 23h2v1h-2zM30 23h3v1h-3zM0 24h1v1h-1zM2 24h1v1h-1zM6 24h1v1h-1zM10 24h2v1h-2zM14 24h2v1h-2zM18 24h2v1h-2zM22 24h7v1h-7zM32 24h1v1h-1zM8 25h1v1h-1zM10 25h1v1h-1zM12 25h1v1h-1zM14 25h1v1h-1zM16 25h5v1h-5zM24 25h1v1h-1zM28 25h1v1h-1zM30 25h1v1h-1zM32 25h1v1h-1zM0 26h7v1h-7zM8 26h1v1h-1zM11 26h2v1h-2zM21 26h1v1h-1zM23 26h2v1h-2zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h2v1h-2zM0 27h1v1h-1zM6 27h1v1h-1zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h2v1h-2zM15 27h1v1h-1zM18 27h4v1h-4zM23 27h2v1h-2zM28 27h4v1h-4zM0 28h1v1h-1zM2 28h3v1h-3zM6 28h1v1h-1zM8 28h2v1h-2zM14 28h1v1h-1zM16 28h4v1h-4zM22 28h1v1h-1zM24 28h6v1h-6zM31 28h1v1h-1zM0 29h1v1h-1zM2 29h3v1h-3zM6 29h1v1h-1zM8 29h1v1h-1zM12 29h4v1h-4zM17 29h4v1h-4zM22 29h2v1h-2zM25 29h1v1h-1zM28 29h2v1h-2zM32 29h1v1h-1zM0 30h1v1h-1zM2 30h3v1h-3zM6 30h1v1h-1zM8 30h2v1h-2zM11 30h1v1h-1zM13 30h2v1h-2zM16 30h1v1h-1zM24 30h4v1h-4zM29 30h1v1h-1zM0 31h1v1h-1zM6 31h1v1h-1zM8 31h1v1h-1zM14 31h2v1h-2zM17 31h1v1h-1zM20 31h3v1h-3zM28 31h3v1h-3zM0 32h7v1h-7zM10 32h1v1h-1zM12 32h1v1h-1zM15 32h1v1h-1zM24 32h4v1h-4zM31 32h1v1h-1z'}};
+
+/* 캐릭터 QR — 매 판 순서를 섞어 랜덤 배정이 되게 한다.
+   주소가 바뀌면 QR 을 다시 만들어야 하므로 현재 주소와 비교해 알려준다. */
+function paintQR(){
+  const box=$('#qrbox'); if(!box) return;
+  const here=location.href.replace(/[^/]*$/,'');
+  const stale = here.indexOf('://')>0 && here!==QR_BASE && !/^file:/.test(here);
+  const order=[1,2,3,4].sort(()=>Math.random()-.5);
+  box.innerHTML = `<div class="qrlab">각자 하나씩 스캔하세요 · 인물은 무작위입니다</div>
+    <div class="qrgrid">${order.map((n,i)=>{
+      const q=QR_DATA[n];
+      return `<button class="qrc" data-qr="${n}">
+        <svg viewBox="-2 -2 ${q.n+4} ${q.n+4}" shape-rendering="crispEdges">
+          <rect x="-2" y="-2" width="${q.n+4}" height="${q.n+4}" fill="#fff"/>
+          <path d="${q.d}" fill="#0f0b16"/></svg>
+        <span>단말 ${'ABCD'[i]}</span></button>`;}).join('')}</div>
+    ${stale?`<div class="qrwarn">이 QR 은 <b>${QR_BASE}</b> 기준입니다.<br>주소가 바뀌었다면 QR 을 다시 만들어주세요.</div>`:''}`;
+  box.querySelectorAll('[data-qr]').forEach(b=>b.onclick=()=>{
+    const n=b.dataset.qr, q=QR_DATA[n];
+    openModal(`<div class="qrpop">
+      <svg viewBox="-2 -2 ${q.n+4} ${q.n+4}" shape-rendering="crispEdges">
+        <rect x="-2" y="-2" width="${q.n+4}" height="${q.n+4}" fill="#fff"/>
+        <path d="${q.d}" fill="#0f0b16"/></svg>
+      <div class="qrurl">${QR_BASE}${n}.html</div>
+      <button class="b1" onclick="closeModal()">닫기</button></div>`);
+  });
+}
+
 function openModal(html){ $('#modal').innerHTML=html; $('#modal').classList.add('on'); $('#mbg').classList.add('on'); }
 function closeModal(){ $('#modal').classList.remove('on'); $('#mbg').classList.remove('on'); }
 $('#gateGo').onclick=()=>startReveal();
@@ -1289,9 +1332,11 @@ $('#tSched').onclick = ()=>{
     <button class="b2" style="width:100%" onclick="document.getElementById('mbg').click()">닫기</button>`);
 };
 </script>
-<script src="assets/visual-upgrade.js">
-/* 나레이션 미리 받아두기 */
-try{ initProAudio(); }catch(e){}
+<script src="assets/visual-upgrade.js"></script>
+<script>
+/* 나레이션 미리 받아두기 · 캐릭터 QR 표시 */
+try{ initProAudio(); }catch(e){ console.warn(e); }
+try{ paintQR(); }catch(e){ console.warn(e); }
 </script>
 </body>
 </html>
