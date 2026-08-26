@@ -316,6 +316,10 @@ main{overflow-y:auto!important;overflow-x:hidden}
   border-radius:14px;padding:26px 20px;text-align:center;font-size:14px;line-height:1.7;color:#e0a04a}
 .imgfail b{font-family:var(--mono);font-size:13px;color:#f0c07a;display:inline-block;margin:6px 0}
 .imgfail span{display:block;font-size:12.5px;color:#8b8296;margin-top:4px}
+
+/* GM 배지가 안내문을 가려서 제거 */
+.vu-gm .script::before{display:none!important}
+.vu-gm .script{padding-left:22px!important;padding-top:18px!important}
 </style>
 <link rel="stylesheet" href="assets/visual-upgrade.css">
 <style>
@@ -465,7 +469,7 @@ main{overflow:hidden}
       <div class="pro-player-status"><span id="proPlayState">재생 대기</span><time id="proTime">00:00</time></div>
       <div class="btns">
         <button class="b2" id="proPrev">이전 장면</button>
-        <button class="b2" id="proStop">정지</button>
+        <button class="b2" id="proSkip">건너뛰기 ⏭</button>
         <button class="b1" id="proPlay" aria-pressed="false">▶ 프롤로그 재생</button>
       </div>
     </div>
@@ -506,7 +510,7 @@ main{overflow:hidden}
       <div class="rv-player-status"><span id="rvPlayState">재생 대기</span><time id="rvTime">00:00</time></div>
       <div class="btns">
         <button class="b2" id="rvPrev">이전 장면</button>
-        <button class="b2" id="rvStop">정지</button>
+        <button class="b2" id="rvSkip">건너뛰기 ⏭</button>
         <button class="b1" id="rvPlay" aria-pressed="false">▶ 전체 재생</button>
       </div>
     </div>
@@ -647,8 +651,7 @@ const ROUNDS=[
     ['🎭','여러분은 모두 용의자입니다','한 명은 범인이고, <b>범인만 거짓말</b>을 할 수 있습니다'],
     ['🔍','증거 없이 추궁할 수 없습니다','증거의 이름이나, 그 사람이 그 물건을 가졌다는 증거가 필요합니다'],
     ['🗣','추궁당하면 진술해야 합니다','범인 외에는 거짓말을 하지 않습니다.<br><b>상대의 진술은 사실로 받아들이세요</b>'],
-    ['🤝','정색하고 화내지 않기','말 끊지 않기, 무례한 반말 하지 않기'],
-    ['🧪','부검은 없습니다','정밀 부검 결과는 제공되지 않습니다.<br>현장에서 <b>직접 보고 맡은 것</b>만이 단서입니다']
+    ['🤝','정색하고 화내지 않기','말 끊지 않기, 무례한 반말 하지 않기']
   ],
   s:'이제부터 90분 동안, 여러분은 서로를 의심하며 이 사건을 풀어야 합니다.'},
  {n:'롤카드 확인',m:6,d:'각자 휴대폰으로 내 역할 읽기',
@@ -1014,8 +1017,8 @@ function showProTimeline(count=0){
   document.querySelectorAll('[data-pro-schedule]').forEach((item,i)=>item.classList.toggle('on',i<count));
 }
 function updateProControls(){
-  const play=$('#proPlay'), stop=$('#proStop'), prev=$('#proPrev'); if(!play) return;
-  prev.disabled=pro===0; stop.disabled=proMode==='stopped'&&proElapsed===0;
+  const play=$('#proPlay'), prev=$('#proPrev'); if(!play) return;
+  prev.disabled=pro===0;
   play.setAttribute('aria-pressed',proMode==='playing'?'true':'false');
   play.textContent=proMode==='playing'?'Ⅱ 일시정지':proMode==='paused'?'▶ 계속 재생':proFinished?'↻ 처음부터 재생':'▶ 프롤로그 재생';
   $('#proPlayState').textContent=proMode==='playing'?'자동 상영 중':proMode==='paused'?'일시정지':proFinished?'상영 완료':'재생 대기';
@@ -1237,8 +1240,8 @@ function mmssShort(ms){
   return String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');
 }
 function updateRevealControls(){
-  const play=$('#rvPlay'), stop=$('#rvStop'), prev=$('#rvPrev'); if(!play) return;
-  prev.disabled=rev===0; stop.disabled=rvMode==='stopped'&&rvElapsed===0;
+  const play=$('#rvPlay'), prev=$('#rvPrev'); if(!play) return;
+  prev.disabled=rev===0;
   play.setAttribute('aria-pressed',rvMode==='playing'?'true':'false');
   play.textContent=rvMode==='playing'?'Ⅱ 일시정지':rvFinished?'↻ 처음부터 재생':rvMode==='paused'?'▶ 계속 재생':'▶ 전체 재생';
   $('#rvPlayState').textContent=rvMode==='playing'?'자동 상영 중':rvMode==='paused'?'일시정지':rvFinished?'상영 완료':'재생 대기';
@@ -1368,9 +1371,9 @@ $('#proPlay').onclick = ()=>{
   if(proFinished){pro=0;proElapsed=0;proFinished=false;paintPro();}
   proMode='playing';updateProControls();runProScene();
 };
-$('#proStop').onclick = ()=>{
-  proMode='stopped';proElapsed=0;proFinished=false;clearProClock();proAudioStop();
-  $('#proProgress').style.width='0';$('#proTime').textContent=mmssShort(proDuration());updateProControls();
+$('#proSkip').onclick = ()=>{
+  proMode='stopped'; proFinished=true; clearProClock(); proAudioStop();
+  startRound(0);
 };
 $('#proPrev').onclick = ()=>{
   if(pro<1)return;const playing=proMode==='playing';pro--;proElapsed=0;proFinished=false;paintPro();proAudioSync();if(playing)runProScene();
@@ -1385,7 +1388,11 @@ $('#rvPlay').onclick = ()=>{
   if(rvFinished){rev=0;rvElapsed=0;rvFinished=false;paintRev();}
   rvMode='playing';updateRevealControls();runRevealScene();
 };
-$('#rvStop').onclick = ()=>{rvMode='stopped';rvElapsed=0;rvFinished=false;clearRevealClock();revAudioStop();showRevealCaption('');$('#rvProgress').style.width='0';$('#rvTime').textContent=mmssShort(revealDuration(REVEAL[rev]));updateRevealControls();};
+$('#rvSkip').onclick = ()=>{
+  rvMode='stopped'; rvFinished=true; clearRevealClock(); revAudioStop();
+  rev=REVEAL.length-1; rvElapsed=revealDuration(REVEAL[rev],rev); paintRev();
+  $('#rvProgress').style.width='100%'; $('#rvTime').textContent='00:00'; updateRevealControls();
+};
 $('#rvPrev').onclick = ()=>{if(rev<1)return;const playing=rvMode==='playing';rev--;rvElapsed=0;rvFinished=false;paintRev();if(playing)runRevealScene();};
 $('#tReset').onclick = ()=>{ if(confirm('처음으로 돌아갑니다.')) location.reload(); };
 
