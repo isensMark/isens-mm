@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>현장 수사 단말 — 한소설</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --blue:#4593FC; --blue-d:#2E7CE8; --blue-l:#17304E; --blue-xl:#141F2E;
+  --red:#FF5F6D; --red-l:#3B2026;
+  --amber:#FFAA33; --amber-l:#3B2F16; --amber-d:#FFC470;
+  --green:#22D18B; --green-l:#123528;
+  --purple:#A78BFA; --purple-l:#2A2048;
+  --w:#22242B;
+  --g50:#141519; --g100:#1D1F26; --g200:#2E323B; --g300:#3E434E;
+  --g400:#6B7280; --g500:#8B95A1; --g600:#A5ADB8; --g700:#C2C8D0;
+  --g800:#DDE1E6; --g900:#F4F5F7;
+  --sans:'Pretendard Variable',Pretendard,-apple-system,system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --sh:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:#0E1116;color:var(--g900);font-family:var(--sans);
+  font-size:17px;line-height:1.62;letter-spacing:-.02em;
+  display:flex;flex-direction:column;overflow-x:hidden}
+#app{flex:1;display:flex;flex-direction:column;max-width:480px;width:100%;margin:0 auto;background:#0E1116}
+
+/* ── 헤더 ── */
+.hdr{position:sticky;top:0;z-index:30;background:rgba(14,17,22,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--g200);
+  padding:14px 18px;display:flex;align-items:center;gap:12px}
+.hdr .bk{background:none;border:0;color:var(--blue);font-size:16px;font-weight:700;
+  cursor:pointer;padding:2px 0;visibility:hidden;font-family:var(--sans)}
+.hdr .bk.on{visibility:visible}
+.hdr .tt{font-size:19px;font-weight:800;flex:1;letter-spacing:-.03em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hdr .me{font-size:14px;font-weight:700;color:var(--blue);background:var(--blue-l);
+  border-radius:99px;padding:6px 13px;white-space:nowrap}
+body.culprit .hdr .me{color:var(--red);background:var(--red-l)}
+
+/* ── 탭 ── */
+.tabs{position:sticky;top:57px;z-index:29;display:grid;grid-template-columns:repeat(3,1fr);
+  background:rgba(14,17,22,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--g200)}
+.tabs button{background:none;border:0;cursor:pointer;padding:15px 4px;
+  font-family:var(--sans);font-size:16px;font-weight:600;color:var(--g500);transition:.15s}
+.tabs button.on{color:var(--blue);font-weight:800;box-shadow:inset 0 -3px 0 var(--blue)}
+.tabs .dt{display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--red);margin-left:5px;vertical-align:3px}
+
+main{flex:1;padding:18px 18px 110px}
+.sub{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;scrollbar-width:none;padding-bottom:2px}
+.sub::-webkit-scrollbar{display:none}
+.sub button{flex:0 0 auto;background:var(--w);border:1px solid var(--g200);cursor:pointer;
+  border-radius:99px;padding:10px 17px;font-size:15px;font-weight:600;color:var(--g600);font-family:var(--sans)}
+.sub button.on{background:var(--g900);border-color:var(--g900);color:#2B2E36;font-weight:700}
+
+/* ── 카드 ── */
+.c{background:var(--w);border-radius:20px;padding:20px 20px;margin-bottom:12px;box-shadow:var(--sh)}
+.c.red{background:var(--red-l);box-shadow:none}
+.c.amber{background:var(--amber-l);box-shadow:none}
+.c.blue{background:var(--blue-l);box-shadow:none}
+.c .lb{font-size:13px;font-weight:800;color:var(--blue);margin-bottom:9px;letter-spacing:0}
+.c.red .lb{color:var(--red)} .c.amber .lb{color:var(--amber-d)}
+.c h3{font-size:21px;font-weight:800;letter-spacing:-.03em;margin-bottom:9px;line-height:1.35}
+.c h4{font-size:18px;font-weight:800;margin:16px 0 7px;letter-spacing:-.02em}
+.c h4:first-child{margin-top:0}
+.c p{font-size:16.5px;line-height:1.7;color:var(--g700);margin-bottom:9px}
+.c p:last-child{margin-bottom:0}
+b{font-weight:800;color:var(--g900)}
+.hl{font-weight:800;color:var(--red)}
+.c ul{list-style:none;display:grid;gap:9px}
+.c li{font-size:16px;line-height:1.65;color:var(--g700);padding-left:26px;position:relative}
+.c li::before{content:'';position:absolute;left:8px;top:11px;width:5px;height:5px;
+  border-radius:50%;background:var(--g300)}
+
+/* ── 프로필 ── */
+.prof{text-align:center;padding:26px 20px 22px}
+.prof svg{width:112px;height:112px;margin:0 auto 14px;display:block}
+.prof .pav{width:132px;height:132px;border-radius:24px;object-fit:cover;
+  margin:0 auto 14px;display:block;box-shadow:0 8px 26px rgba(0,0,0,.45)}
+.prof .nm{font-size:30px;font-weight:800;letter-spacing:-.04em}
+.prof .mt{font-size:15px;color:var(--g500);font-weight:600;margin-top:4px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.chips span{background:var(--g100);border-radius:99px;padding:8px 14px;
+  font-size:14.5px;font-weight:700;color:var(--g700)}
+
+/* 비밀 카드 */
+.secret{display:block;width:100%;padding:0;border:0;background:none;cursor:pointer;
+  margin-bottom:12px;font-family:var(--sans);text-align:center}
+.lock2{background:var(--w);border:2px dashed var(--g300);border-radius:20px;padding:30px 20px;
+  box-shadow:none;transition:.15s}
+.secret:active .lock2{transform:scale(.99)}
+.lock2 .li{font-size:34px;margin-bottom:10px;opacity:.8}
+.lock2 .lt{font-size:19px;font-weight:800;letter-spacing:-.03em;color:var(--g800)}
+.lock2 .ld{font-size:14.5px;color:var(--g500);font-weight:600;margin-top:6px}
+
+/* 판정 배너 */
+.verd{border-radius:20px;padding:22px 20px;margin-bottom:12px;text-align:center}
+.verd.bad{background:var(--red);color:#2B2E36}
+.verd.ok{background:var(--blue);color:#0E1116}
+.verd .ic{font-size:34px;margin-bottom:8px}
+.verd h3{font-size:25px;font-weight:800;letter-spacing:-.03em;margin-bottom:8px;color:#fff}
+.verd p{font-size:17px;line-height:1.65;color:rgba(255,255,255,.96);margin-bottom:6px}
+.verd p b{color:#2B2E36}
+.verd .s{font-size:14px;color:rgba(255,255,255,.82);margin-top:12px;
+  background:rgba(0,0,0,.18);border-radius:99px;padding:6px 14px;display:inline-block}
+
+/* 대사 */
+.say{background:#171A20;border-radius:16px;padding:18px 18px;
+  font-size:17px;line-height:1.8;color:var(--g800);font-weight:500;position:relative}
+.say::before{content:'“';position:absolute;left:12px;top:-4px;font-size:38px;color:var(--g300);font-weight:800}
+.say{padding-left:34px}
+
+/* 3줄 요약 */
+.sum{display:grid;gap:8px;margin-bottom:12px}
+.sum div{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:center;
+  background:var(--w);border-radius:16px;padding:15px 16px;box-shadow:var(--sh);
+  font-size:16.5px;font-weight:600;color:var(--g800)}
+.sum b{background:var(--blue);color:#0E1116;border-radius:9px;text-align:center;
+  font-family:var(--mono);font-size:14px;font-weight:700;padding:5px 0}
+body.culprit .sum b{background:var(--red)}
+
+/* 타임라인 */
+.tl{display:grid;gap:0}
+.tl .row{display:grid;grid-template-columns:56px 1fr;gap:12px;position:relative;padding-bottom:12px}
+.tl .row::before{content:'';position:absolute;left:63px;top:26px;bottom:0;width:2px;background:var(--g200)}
+.tl .row:last-child::before{display:none}
+.tl time{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--g500);
+  text-align:right;padding-top:15px}
+.tl .dot{position:absolute;left:59px;top:19px;width:10px;height:10px;border-radius:50%;
+  background:var(--g300);border:2px solid var(--w);z-index:1}
+.tl .row.key .dot{background:var(--red)}
+.tl .bx{background:var(--w);border-radius:14px;padding:13px 15px;box-shadow:var(--sh);
+  font-size:15.5px;line-height:1.6;color:var(--g700);margin-left:6px}
+.tl .row.key .bx{background:var(--red-l);box-shadow:none;color:var(--g800)}
+.tl .fake{background:var(--g100);border-radius:14px;padding:12px 15px;margin:6px 0 0 6px;
+  font-size:14.5px;line-height:1.6;color:var(--g600)}
+.tl .fake em{font-style:normal;display:block;font-size:12.5px;font-weight:800;
+  color:var(--g500);margin-bottom:4px}
+
+/* 추궁 */
+.cri{background:var(--w);border-radius:18px;box-shadow:var(--sh);margin-bottom:10px;overflow:hidden}
+.cri .q{padding:17px 18px;font-size:17px;font-weight:800;color:var(--g900);
+  cursor:pointer;display:flex;align-items:center;gap:10px;letter-spacing:-.02em}
+.cri .q .ar{margin-left:auto;color:var(--g400);font-size:15px;transition:.2s}
+.cri.open .q .ar{transform:rotate(180deg)}
+.cri .a{display:none;padding:0 18px 18px;font-size:15.5px;line-height:1.75;color:var(--g700)}
+.cri.open .a{display:block}
+.cri .a b{color:var(--g900)}
+
+.plan{width:100%;height:auto;display:block;margin-bottom:14px}
+.plan .ground{fill:var(--w);stroke:var(--g200);stroke-width:2}
+.rm{cursor:pointer}
+.rm .rr{fill:var(--g100);stroke:var(--g300);stroke-width:1.6;transition:.16s}
+.rm:hover .rr,.rm:active .rr{fill:var(--blue-l);stroke:var(--blue);stroke-width:2.4}
+.rm .rn{font-family:var(--sans);font-size:17px;font-weight:800;fill:var(--g900);
+  text-anchor:middle;letter-spacing:-.02em}
+.rm .rs{font-family:var(--sans);font-size:11px;font-weight:600;fill:var(--g500);text-anchor:middle}
+.rm .bc{fill:var(--blue)}
+.rm .bc.zero{fill:var(--g300)}
+.rm .bt{font-family:var(--mono);font-size:13px;font-weight:700;fill:#0E1116;text-anchor:middle}
+.plan .flow path{stroke:var(--amber);stroke-width:2.4;fill:none;stroke-linecap:round}
+.plan .ft{font-family:var(--sans);font-size:11px;font-weight:700;fill:var(--amber);text-anchor:middle}
+.plan .floornote{font-family:var(--sans);font-size:11px;font-weight:600;fill:var(--g500);text-anchor:middle}
+.secthead{font-size:15px;font-weight:800;color:var(--g600);margin:18px 0 10px}
+.secthead:first-of-type{margin-top:4px}
+.keynote{background:var(--amber-l);border-radius:14px;padding:13px 16px;margin-bottom:12px;
+  font-size:15px;font-weight:600;color:var(--amber-d);text-align:center}
+.keynote b{color:var(--amber);font-weight:800}
+.susart{background:var(--w);border-radius:20px;box-shadow:var(--sh);padding:24px;
+  margin-bottom:12px;text-align:center}
+.susart svg{width:88px;height:88px;margin:0 auto 10px;display:block}
+.susart .pav{width:104px;height:104px;border-radius:20px;object-fit:cover;
+  margin:0 auto 10px;display:block}
+.susart .sn{font-size:24px;font-weight:800;letter-spacing:-.03em}
+.susart .ss{font-size:14.5px;color:var(--g500);font-weight:600;margin-top:3px}
+.oc .ct.zero{color:var(--g500)}
+.rstat{display:flex;align-items:center;gap:12px;background:var(--w);border-radius:16px;
+  padding:15px 18px;margin-bottom:12px;box-shadow:var(--sh)}
+.rstat .rl b{display:block;font-size:17px;font-weight:800;letter-spacing:-.02em}
+.rstat .rl span{font-size:13.5px;color:var(--g500);font-weight:600}
+.rstat .pips{margin-left:auto;display:flex;gap:6px}
+.rstat .pips i{width:14px;height:14px;border-radius:50%;background:var(--g200)}
+.rstat .pips i.on{background:var(--blue)}
+.done{background:var(--w);border-radius:20px;box-shadow:var(--sh);padding:26px 22px;
+  text-align:center;margin-bottom:12px}
+.done .ic{font-size:38px;margin-bottom:10px}
+.done .wt{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:8px}
+.done .wd{font-size:15.5px;color:var(--g600);line-height:1.7;margin-bottom:16px}
+.roomart{background:var(--w);border-radius:18px;box-shadow:var(--sh);padding:26px;
+  margin-bottom:12px;display:flex;justify-content:center}
+.roomart svg{width:104px;height:104px}
+.bignum{font-family:var(--mono);font-size:46px;font-weight:700;color:var(--blue);
+  letter-spacing:-.03em;margin:10px 0 6px;line-height:1}
+.bignum span{font-family:var(--sans);font-size:15px;font-weight:600;color:var(--g500);
+  letter-spacing:0;margin-left:6px}
+.lockmsg{background:var(--g100);border-radius:14px;padding:15px;font-size:15px;
+  color:var(--g500);font-weight:600;margin-top:10px}
+.act .cnt{font-size:13.5px;font-weight:600;opacity:.75;margin-left:6px}
+.newtag{text-align:center;font-size:14px;font-weight:800;color:var(--blue);
+  background:var(--blue-l);border-radius:99px;padding:9px 0;margin-bottom:12px}
+.rowbtn.empty{opacity:.45}
+.rowbtn .ct.zero{color:var(--g500)}
+
+/* ── 조사: 방 목록 ── */
+.rooms{display:grid;gap:10px}
+.rowbtn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;
+  background:var(--w);border:0;border-radius:18px;padding:16px 17px;box-shadow:var(--sh);
+  font-family:var(--sans);transition:.15s}
+.rowbtn:active{transform:scale(.99)}
+.rowbtn .th{width:52px;height:52px;border-radius:14px;flex:0 0 auto;overflow:hidden;background:var(--g100)}
+.rowbtn .th svg{width:100%;height:100%;display:block}
+.rowbtn .th .pav{width:100%;height:100%;object-fit:cover;display:block}
+.rowbtn .nm{font-size:18px;font-weight:800;color:var(--g900);letter-spacing:-.02em}
+.rowbtn .s2{font-size:14px;color:var(--g500);font-weight:500;margin-top:2px}
+.rowbtn .ct{margin-left:auto;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--g400)}
+.rowbtn .ct.done{color:var(--green)}
+.rowbtn.me{background:var(--red-l);box-shadow:none}
+.rowbtn.me .nm{color:var(--red)}
+
+/* 장면 */
+.scene{width:100%;height:auto;display:block;border-radius:18px;
+  background:var(--w);box-shadow:var(--sh);margin-bottom:14px}
+.flr{fill:#1D1F26}.wl{fill:none;stroke:#4B505B;stroke-width:2.5}
+.fn{fill:#2B2E36;stroke:#646B78;stroke-width:1.8}
+.lb2{font-family:var(--mono);font-size:9.5px;fill:#646B78;letter-spacing:.1em;text-anchor:middle}
+.hs{cursor:pointer}
+.hs .hit{fill:transparent}
+.hs .ring{display:none}
+.hs.static{cursor:default}
+.hs.static .tip{display:none}
+.hs:hover .ring,.hs:focus .ring{opacity:1}
+.hs.done .ring{opacity:1;stroke:var(--green)}
+.hs.done .shape{opacity:.4}
+.hs .tip{font-family:var(--sans);font-size:11px;font-weight:700;fill:var(--blue);
+  text-anchor:middle;opacity:0;transition:.2s}
+.hs:hover .tip{opacity:1}
+.pulse{animation:pl 2.4s ease-in-out infinite}
+@keyframes pl{0%,100%{opacity:.4}50%{opacity:1}}
+.hint2{text-align:center;font-size:14px;color:var(--g500);font-weight:600;margin-bottom:12px}
+
+/* 오브젝트 그리드 */
+.og{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.oc{cursor:pointer;background:var(--w);border:0;border-radius:18px;padding:18px 12px;
+  text-align:center;box-shadow:var(--sh);font-family:var(--sans);transition:.15s}
+.oc:active{transform:scale(.98)}
+.oc.done{background:var(--g100);box-shadow:none}
+.oc svg{width:52px;height:52px;margin:0 auto 8px;display:block}
+.oc .nm{font-size:16.5px;font-weight:800;color:var(--g900);letter-spacing:-.02em}
+.oc .ct{font-size:13px;font-weight:600;color:var(--g400);margin-top:3px}
+.oc.done .ct{color:var(--green)}
+
+/* 단서 상세 */
+.cimg{width:100%;height:auto;display:block;border-radius:16px;margin-bottom:14px;background:var(--g100)}
+.cimg .hw{font-family:'Nanum Pen Script',cursive}
+.cimg .anno{font-family:var(--sans);font-size:10px;font-weight:700}
+.where{font-size:14px;color:var(--g500);font-weight:600;margin-bottom:12px}
+.act{width:100%;cursor:pointer;margin-top:10px;border:0;border-radius:14px;padding:17px;
+  font-family:var(--sans);font-size:17px;font-weight:700;background:var(--blue);color:#0E1116}
+.act:active{transform:scale(.99)}
+.act:disabled{background:var(--g100);color:var(--g400)}
+.act.g{background:var(--w);border:1px solid var(--g200);color:var(--g700);font-weight:600}
+.act.g.star{background:var(--amber-l);border-color:#FFE0B2;color:var(--amber-d)}
+
+/* 영장 */
+.warrant{background:var(--w);border-radius:22px;box-shadow:var(--sh);padding:34px 24px;text-align:center}
+.warrant .ic{font-size:44px;margin-bottom:14px}
+.warrant .wt{font-size:21px;font-weight:800;letter-spacing:-.03em;margin-bottom:10px}
+.warrant .wd{font-size:16px;color:var(--g600);line-height:1.75;margin-bottom:22px}
+.warrant input{width:100%;background:var(--g100);border:2px solid transparent;border-radius:16px;
+  padding:18px;font-family:var(--mono);font-size:26px;font-weight:700;text-align:center;
+  letter-spacing:.36em;outline:none;color:var(--g900)}
+.warrant input:focus{border-color:var(--blue);background:var(--w)}
+.warrant .err{font-size:14.5px;color:var(--red);font-weight:600;margin-top:10px;min-height:20px}
+
+/* 단서함 */
+.vopts{display:grid;gap:10px;margin-bottom:14px}
+.vopt{display:flex;align-items:center;gap:14px;width:100%;cursor:pointer;
+  background:var(--w);border:2px solid transparent;border-radius:18px;padding:16px 18px;
+  box-shadow:var(--sh);font-family:var(--sans)}
+.vopt.on{border-color:var(--blue);background:var(--blue-l)}
+.vopt .va{width:46px;height:46px;flex:0 0 auto}
+.vopt .va svg{width:100%;height:100%}
+.vopt .va .pav{width:100%;height:100%;border-radius:12px;object-fit:cover;display:block}
+.vopt .vnm{font-size:20px;font-weight:800;color:var(--g900);letter-spacing:-.02em}
+.vopt .vck{margin-left:auto;font-size:20px;color:var(--blue);font-weight:800}
+.vstat{text-align:center;font-size:16px;color:var(--g600);font-weight:600}
+.vstat b{color:var(--blue);font-weight:800}
+.kempty{text-align:center;color:var(--g500);font-size:16px;padding:70px 20px;line-height:1.9;font-weight:500}
+.gh{display:flex;align-items:center;gap:9px;margin:20px 0 10px}
+.gh:first-child{margin-top:0}
+.gh .gt{font-size:15px;font-weight:800;color:var(--g900)}
+.gh .gn{font-size:14px;font-weight:700;color:var(--g400)}
+.ki{display:grid;grid-template-columns:26px 1fr;gap:12px;width:100%;text-align:left;cursor:pointer;
+  background:var(--w);border:0;border-radius:16px;padding:15px 16px;margin-bottom:8px;
+  box-shadow:var(--sh);font-family:var(--sans)}
+.ki.st{background:var(--amber-l);box-shadow:none}
+.ki .s{font-size:17px;color:var(--g300)}
+.ki.st .s{color:var(--amber)}
+.ki .n{display:block;font-size:17px;font-weight:800;color:var(--g900);letter-spacing:-.02em}
+.ki .d{display:block;font-size:14.5px;color:var(--g600);line-height:1.6;margin-top:3px}
+
+/* 하단 */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:480px;margin:0 auto;
+  background:rgba(14,17,22,.96);backdrop-filter:blur(14px);border-top:1px solid var(--g200);
+  padding:14px 18px calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px}
+.dock .l{font-size:15px;font-weight:700;color:var(--g600)}
+.dock .bg{font-family:var(--mono);font-size:15px;font-weight:700;color:#0E1116;
+  background:var(--blue);border-radius:99px;padding:3px 12px}
+
+#pop{position:fixed;inset:0;z-index:75;display:none}
+#pop.on{display:block}
+#pop .pbg{position:absolute;inset:0;background:rgba(0,0,0,.66);backdrop-filter:blur(2px)}
+#pop .pcd{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(400px,calc(100vw - 32px));max-height:86vh;overflow-y:auto;
+  background:var(--w);border-radius:22px;padding:22px 20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);animation:pin .2s ease}
+@keyframes pin{from{opacity:0;transform:translate(-50%,-46%) scale(.97)}
+  to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+#pop h3{font-size:21px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+#pop p{font-size:16.5px;line-height:1.7;color:var(--g700);margin-bottom:4px}
+#pop .ptag{background:var(--blue-xl);border-radius:12px;padding:11px;text-align:center;
+  font-size:14.5px;font-weight:700;color:var(--blue);margin-top:12px}
+.sayline{background:var(--blue-l);border-radius:14px;padding:16px 18px;
+  font-size:18px;font-weight:700;color:var(--g900);line-height:1.6;letter-spacing:-.02em}
+.saytag{font-size:13px;font-weight:700;color:var(--g500);margin:14px 0 8px}
+#gate{position:fixed;inset:0;z-index:80;background:#0E1116;
+  display:flex;align-items:center;justify-content:center;padding:24px}
+.gcard{width:100%;max-width:380px;text-align:center}
+.gav{width:132px;height:132px;margin:0 auto 16px}
+.gav svg{width:100%;height:100%}
+.gav .pav{width:100%;height:100%;border-radius:22px;object-fit:cover;display:block;
+  box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.gnm{font-size:30px;font-weight:800;letter-spacing:-.04em}
+.gsub{font-size:15px;color:var(--g500);font-weight:600;margin-top:4px;margin-bottom:34px}
+.gl{font-size:16px;color:var(--g600);font-weight:600;margin-bottom:12px}
+.gl b{color:var(--g900)}
+#gate input{width:100%;background:var(--w);border:2px solid var(--g200);border-radius:16px;
+  padding:20px;font-family:var(--mono);font-size:34px;font-weight:700;text-align:center;
+  letter-spacing:.3em;color:var(--g900);outline:none;text-transform:uppercase}
+#gate input:focus{border-color:var(--blue)}
+.gerr{font-size:14.5px;color:var(--red);font-weight:600;min-height:22px;margin-top:8px}
+.dock .net{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue);
+  background:var(--blue-l);border-radius:8px;padding:3px 9px;margin-left:auto}
+.dock .net.off{color:var(--amber);background:var(--amber-l)}
+.dock .r{margin-left:10px;font-size:13px;color:var(--g500);font-weight:600;
+  max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,16px);z-index:70;
+  background:var(--g900);color:#0E1116;font-size:15.5px;font-weight:600;
+  padding:13px 22px;border-radius:99px;opacity:0;pointer-events:none;transition:.24s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <button class="bk" id="bk">← 뒤로</button>
+    <div class="tt" id="tt">캐릭터북</div>
+    <div class="me" id="me">한소설</div>
+  </div>
+  <div class="tabs" id="tabs">
+    <button class="on" data-t="book">캐릭터북</button>
+    <button data-t="inv">조사</button>
+    <button data-t="kit">단서함<span class="dt" id="dt" style="display:none"></span></button>
+  </div>
+  <main id="main"></main>
+  <div class="dock">
+    <span class="l">단서</span><span class="bg" id="cnt">0</span>
+    <span class="net" id="net"></span>
+    <span class="r" id="last"></span>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div id="gate"></div>
+<div id="pop"></div>
+
+<script>
+/* ══════════ 아이콘 ══════════ */
+const AV={
+ 尹:`<img class="pav" src="assets/portrait-yoon.png" alt="윤꽃집">`,
+ 韓:`<img class="pav" src="assets/portrait-han.png"  alt="한소설">`,
+ 白:`<img class="pav" src="assets/portrait-baek.png" alt="백비서">`,
+ 柳:`<img class="pav" src="assets/portrait-yoo.png"  alt="유감독">`
+};
+
+const IC={
+ table:`<svg viewBox="0 0 60 60"><circle cx="30" cy="32" r="18" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><circle cx="30" cy="14" r="5" fill="#3A3E48"/><circle cx="46" cy="24" r="5" fill="#3A3E48"/><circle cx="46" cy="42" r="5" fill="#3A3E48"/><circle cx="30" cy="51" r="5" fill="#3B2026" stroke="#FF5F6D" stroke-width="1.6"/><circle cx="14" cy="42" r="5" fill="#3A3E48"/><circle cx="14" cy="24" r="5" fill="#3A3E48"/></svg>`,
+ floor:`<svg viewBox="0 0 60 60"><rect x="6" y="10" width="48" height="40" rx="4" fill="#1D1F26"/><ellipse cx="30" cy="34" rx="15" ry="9" fill="#17304E" stroke="#4593FC" stroke-width="1.8"/><circle cx="21" cy="26" r="2.6" fill="#4593FC" opacity=".6"/><circle cx="40" cy="27" r="2" fill="#4593FC" opacity=".45"/></svg>`,
+ body:`<svg viewBox="0 0 60 60"><rect x="6" y="8" width="48" height="44" rx="5" fill="#3B2026"/><path d="M23 20q7-6 14 0 4 10-1 20-6 4-12 0-4-10-1-20z" fill="none" stroke="#FF5F6D" stroke-width="2.4" stroke-dasharray="5 4"/></svg>`,
+ side:`<svg viewBox="0 0 60 60"><rect x="7" y="26" width="46" height="20" rx="3" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><rect x="17" y="12" width="9" height="16" rx="2.5" fill="#17304E" stroke="#4593FC" stroke-width="1.6"/><rect x="33" y="14" width="12" height="14" rx="3" fill="#1D1F26" stroke="#646B78" stroke-width="1.6"/></svg>`,
+ curtain:`<svg viewBox="0 0 60 60"><rect x="12" y="10" width="36" height="40" rx="3" fill="#1D1F26" stroke="#4B505B" stroke-width="1.8"/><path d="M18 10v40M26 10v40M34 10v40M42 10v40" stroke="#4B505B" stroke-width="1.6"/></svg>`,
+ chair:`<svg viewBox="0 0 60 60"><rect x="19" y="12" width="22" height="20" rx="4" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><rect x="19" y="32" width="22" height="7" rx="2" fill="#1D1F26" stroke="#646B78" stroke-width="1.8"/><path d="M22 39v9M38 39v9" stroke="#646B78" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+ pot:`<svg viewBox="0 0 60 60"><rect x="8" y="30" width="44" height="16" rx="3" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><ellipse cx="24" cy="30" rx="10" ry="4" fill="#1D1F26" stroke="#646B78" stroke-width="1.6"/><path d="M20 20q4-6 8 0M26 18q4-6 8 0" stroke="#4B505B" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+ bin:`<svg viewBox="0 0 60 60"><path d="M18 20h24l-3 30H21z" fill="#17304E" stroke="#4593FC" stroke-width="2"/><rect x="15" y="14" width="30" height="6" rx="3" fill="#4593FC" opacity=".3"/></svg>`,
+ sink:`<svg viewBox="0 0 60 60"><rect x="8" y="26" width="44" height="18" rx="3" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><rect x="18" y="30" width="24" height="10" rx="2" fill="#1D1F26"/><path d="M30 26v-8q0-4 5-4" stroke="#646B78" stroke-width="2.4" fill="none"/></svg>`,
+ bed2:`<svg viewBox="0 0 60 60"><rect x="8" y="18" width="44" height="26" rx="4" fill="#123528" stroke="#22D18B" stroke-width="2"/><path d="M8 34h44" stroke="#22D18B" stroke-width="1.8"/><rect x="14" y="22" width="14" height="9" rx="2.5" fill="#2B2E36"/></svg>`,
+ flower:`<svg viewBox="0 0 60 60"><path d="M30 48V30" stroke="#22D18B" stroke-width="2.6" stroke-linecap="round"/><circle cx="30" cy="22" r="6" fill="#A78BFA"/><circle cx="22" cy="27" r="5" fill="#A78BFA" opacity=".7"/><circle cx="38" cy="27" r="5" fill="#A78BFA" opacity=".7"/><circle cx="30" cy="32" r="4" fill="#A78BFA" opacity=".5"/><path d="M20 48h20" stroke="#646B78" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+ ash:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="38" rx="18" ry="8" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><rect x="26" y="20" width="4" height="14" rx="2" fill="#4B505B"/><path d="M34 18q3-5 0-9" stroke="#4B505B" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+ bench:`<svg viewBox="0 0 60 60"><rect x="10" y="28" width="40" height="6" rx="2" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><rect x="10" y="19" width="40" height="6" rx="2" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><path d="M16 34v10M44 34v10" stroke="#646B78" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+ wc:`<svg viewBox="0 0 60 60"><rect x="16" y="10" width="28" height="40" rx="4" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><circle cx="38" cy="30" r="2.6" fill="#646B78"/></svg>`,
+ corr:`<svg viewBox="0 0 60 60"><path d="M10 50 22 14h16l12 36z" fill="#1D1F26" stroke="#4B505B" stroke-width="1.8"/><circle cx="30" cy="24" r="3.4" fill="#FFAA33" opacity=".6"/></svg>`,
+ drawer:`<svg viewBox="0 0 60 60"><rect x="10" y="16" width="40" height="30" rx="4" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><path d="M10 31h40" stroke="#646B78" stroke-width="1.8"/><circle cx="30" cy="24" r="2.4" fill="#646B78"/><circle cx="42" cy="38" r="5" fill="#3B2F16" stroke="#FFAA33" stroke-width="1.8"/><path d="M42 36v4" stroke="#FFAA33" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+ desk:`<svg viewBox="0 0 60 60"><rect x="10" y="14" width="18" height="24" rx="2" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><rect x="31" y="18" width="18" height="20" rx="2" fill="#1D1F26" stroke="#646B78" stroke-width="1.8"/><path d="M14 20h10M14 25h10M14 30h7" stroke="#4B505B" stroke-width="1.8" stroke-linecap="round"/><path d="M12 42h36" stroke="#646B78" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+ pc:`<svg viewBox="0 0 60 60"><rect x="9" y="15" width="42" height="26" rx="3" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><rect x="14" y="20" width="32" height="16" rx="1.5" fill="#17304E"/><path d="M22 45h16" stroke="#646B78" stroke-width="2.6" stroke-linecap="round"/></svg>`,
+ phone:`<svg viewBox="0 0 60 60"><rect x="19" y="9" width="22" height="42" rx="5" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><rect x="23" y="15" width="14" height="26" rx="1.5" fill="#17304E"/><circle cx="30" cy="46" r="2.2" fill="#4B505B"/></svg>`,
+ bag:`<svg viewBox="0 0 60 60"><rect x="13" y="22" width="34" height="26" rx="4" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><path d="M23 22v-4a7 7 0 0 1 14 0v4" stroke="#646B78" stroke-width="2.2" fill="none"/></svg>`,
+ kit:`<svg viewBox="0 0 60 60"><rect x="11" y="14" width="17" height="32" rx="3" fill="#17304E" stroke="#4593FC" stroke-width="2"/><path d="M11 28h17" stroke="#4593FC" stroke-width="1.8"/><rect x="33" y="30" width="16" height="16" rx="2.5" fill="#2B2E36" stroke="#646B78" stroke-width="1.8"/><path d="M37 26q4-6 8 0" stroke="#4B505B" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+ room:`<svg viewBox="0 0 60 60"><rect x="12" y="12" width="36" height="38" rx="4" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><rect x="18" y="20" width="24" height="14" rx="2" fill="#3B2F16" stroke="#FFAA33" stroke-width="1.6"/><path d="M22 42h16" stroke="#4B505B" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+ shop:`<svg viewBox="0 0 60 60"><path d="M10 24h40l-4-10H14z" fill="#123528" stroke="#22D18B" stroke-width="1.8"/><rect x="13" y="24" width="34" height="24" rx="3" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><circle cx="24" cy="36" r="4" fill="#A78BFA" opacity=".55"/><circle cx="36" cy="36" r="4" fill="#FF5F6D" opacity=".45"/></svg>`,
+ studio:`<svg viewBox="0 0 60 60"><rect x="10" y="20" width="26" height="20" rx="3" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><path d="M36 27l12-6v18l-12-6z" fill="#2A2048" stroke="#A78BFA" stroke-width="1.8"/><circle cx="18" cy="16" r="4" fill="#1D1F26" stroke="#646B78" stroke-width="1.6"/><circle cx="28" cy="16" r="4" fill="#1D1F26" stroke="#646B78" stroke-width="1.6"/></svg>`
+};
+const RM={
+ dining:`<svg viewBox="0 0 60 60"><rect width="60" height="60" rx="8" fill="#1D1F26"/><circle cx="30" cy="30" r="14" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><circle cx="30" cy="46" r="4" fill="#3B2026" stroke="#FF5F6D" stroke-width="1.6"/></svg>`,
+ kitchen:`<svg viewBox="0 0 60 60"><rect width="60" height="60" rx="8" fill="#1D1F26"/><rect x="10" y="26" width="40" height="14" rx="3" fill="#2B2E36" stroke="#646B78" stroke-width="2"/><circle cx="21" cy="26" r="5" fill="#17304E" stroke="#4593FC" stroke-width="1.6"/></svg>`,
+ garden:`<svg viewBox="0 0 60 60"><rect width="60" height="60" rx="8" fill="#123528"/><circle cx="24" cy="26" r="6" fill="#A78BFA" opacity=".6"/><circle cx="38" cy="32" r="5" fill="#A78BFA" opacity=".4"/><path d="M12 46h36" stroke="#22D18B" stroke-width="2.6" stroke-linecap="round"/></svg>`,
+ hall:`<svg viewBox="0 0 60 60"><rect width="60" height="60" rx="8" fill="#1D1F26"/><path d="M14 48 24 16h12l10 32z" fill="#2B2E36" stroke="#646B78" stroke-width="1.8"/></svg>`
+};
+
+/* ══════════ 단서 이미지 ══════════ */
+const IMG={
+memo:`<svg class="cimg" viewBox="0 0 340 250"><rect width="340" height="250" rx="16" fill="#F2F4F6"/>
+<g transform="rotate(-1.6 170 125)"><rect x="26" y="16" width="288" height="218" rx="6" fill="#FFFDF5" stroke="#E5E0CE" stroke-width="1.5"/>
+<line x1="44" y1="46" x2="296" y2="46" stroke="#EFE9D6" stroke-width="1.4"/>
+<text x="44" y="40" class="hw" font-size="18" fill="#6B7684">만찬 자리</text>
+<text x="44" y="70" class="hw" font-size="15" fill="#8B95A1">주인공은 나니까</text>
+<circle cx="168" cy="150" r="54" fill="none" stroke="#4E5968" stroke-width="2"/>
+<circle cx="168" cy="216" r="15" fill="#FEECEE" stroke="#F04452" stroke-width="2.4"/>
+<text x="168" y="221" class="hw" font-size="14" fill="#F04452" text-anchor="middle">나</text>
+<path d="M234 190q-24 20-46 26" fill="none" stroke="#F04452" stroke-width="2"/>
+<path d="M186 213l12-3-3 11z" fill="#F04452"/>
+<text x="238" y="184" class="hw" font-size="17" fill="#F04452">내 자리</text>
+<text x="238" y="202" class="hw" font-size="17" fill="#F04452">(상석)</text>
+<circle cx="114" cy="192" r="14" fill="none" stroke="#D1D6DB" stroke-width="1.6"/>
+<circle cx="114" cy="108" r="14" fill="none" stroke="#D1D6DB" stroke-width="1.6"/>
+<circle cx="168" cy="80" r="14" fill="none" stroke="#D1D6DB" stroke-width="1.6"/>
+<circle cx="222" cy="108" r="14" fill="none" stroke="#D1D6DB" stroke-width="1.6"/>
+<circle cx="222" cy="192" r="14" fill="none" stroke="#D1D6DB" stroke-width="1.6"/>
+<text x="114" y="197" class="hw" font-size="16" fill="#B0B8C1" text-anchor="middle">?</text>
+<text x="114" y="113" class="hw" font-size="16" fill="#B0B8C1" text-anchor="middle">?</text>
+<text x="168" y="85" class="hw" font-size="16" fill="#B0B8C1" text-anchor="middle">?</text>
+<text x="222" y="113" class="hw" font-size="16" fill="#B0B8C1" text-anchor="middle">?</text>
+<text x="222" y="197" class="hw" font-size="16" fill="#B0B8C1" text-anchor="middle">?</text></g></svg>`,
+
+ice:`<svg class="cimg" viewBox="0 0 340 250"><rect width="340" height="250" rx="16" fill="#EAF3FA"/>
+<circle cx="170" cy="112" r="88" fill="#fff" stroke="#CFE0EC" stroke-width="3"/>
+<circle cx="170" cy="112" r="74" fill="#F5FAFD" stroke="#E1EDF5" stroke-width="1.6"/>
+<ellipse cx="170" cy="146" rx="62" ry="22" fill="#D6EAF7"/>
+<path d="M136 92l36-15 40 13 5 36-31 24-42-7z" fill="#E8F5FD" stroke="#3182F6" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M172 77v78" stroke="#3182F6" stroke-width="1.6" stroke-dasharray="5 4" opacity=".7"/>
+<circle cx="170" cy="112" r="6" fill="#fff" stroke="#3182F6" stroke-width="2"/>
+<circle cx="179" cy="103" r="3.4" fill="#fff" stroke="#3182F6" stroke-width="1.6"/>
+<circle cx="162" cy="121" r="4" fill="#fff" stroke="#3182F6" stroke-width="1.6"/>
+<circle cx="176" cy="123" r="2.4" fill="#fff" stroke="#3182F6" stroke-width="1.4"/>
+<line x1="170" y1="112" x2="170" y2="200" stroke="#F04452" stroke-width="1.6" stroke-dasharray="4 4"/>
+<circle cx="170" cy="112" r="2.6" fill="#F04452"/>
+<text x="170" y="216" class="anno" fill="#F04452" text-anchor="middle">중앙에 기포 · 위아래로 관통한 흔적</text>
+<text x="170" y="234" class="anno" fill="#8B95A1" text-anchor="middle" font-weight="500">물잔 바닥 · 얼음이 거의 녹아 있다</text></svg>`,
+
+letters:`<svg class="cimg" viewBox="0 0 340 250"><rect width="340" height="250" rx="16" fill="#F2F4F6"/>
+<g transform="rotate(-7 120 130)"><rect x="34" y="70" width="164" height="106" rx="5" fill="#fff" stroke="#D1D6DB" stroke-width="1.6"/></g>
+<g transform="rotate(3 130 130)"><rect x="44" y="64" width="164" height="106" rx="5" fill="#fff" stroke="#D1D6DB" stroke-width="1.6"/></g>
+<g transform="rotate(-1.5 140 126)"><rect x="54" y="58" width="168" height="110" rx="5" fill="#fff" stroke="#B0B8C1" stroke-width="2"/>
+<path d="M54 58l84 54 84-54" fill="none" stroke="#D1D6DB" stroke-width="2"/>
+<text x="70" y="150" class="anno" fill="#8B95A1" font-weight="600">보내는 사람 —</text>
+<line x1="150" y1="152" x2="208" y2="152" stroke="#F04452" stroke-width="2"/></g>
+<g transform="rotate(8 254 118)"><rect x="200" y="40" width="116" height="150" rx="4" fill="#fff" stroke="#D1D6DB" stroke-width="1.6"/>
+<rect x="214" y="64" width="50" height="14" rx="2" fill="#333D4B"/><rect x="270" y="64" width="30" height="14" rx="2" fill="#333D4B"/>
+<rect x="214" y="88" width="34" height="14" rx="2" fill="#333D4B"/><rect x="254" y="88" width="46" height="14" rx="2" fill="#333D4B"/>
+<rect x="214" y="112" width="58" height="14" rx="2" fill="#333D4B"/>
+<rect x="214" y="144" width="86" height="11" rx="2" fill="#F04452"/></g>
+<text x="170" y="236" class="anno" fill="#8B95A1" text-anchor="middle" font-weight="500">이혼과 별거를 재촉하는 편지 · 최근 3개월</text></svg>`,
+
+seats:`<svg class="cimg" viewBox="0 0 340 250"><rect width="340" height="250" rx="16" fill="#F2F4F6"/>
+<line x1="170" y1="26" x2="170" y2="192" stroke="#D1D6DB" stroke-width="1.6" stroke-dasharray="5 5"/>
+<text x="86" y="24" class="anno" fill="#8B95A1" text-anchor="middle">옆자리</text>
+<text x="254" y="24" class="anno" fill="#F04452" text-anchor="middle">시신이 앉은 자리</text>
+<g><circle cx="86" cy="118" r="30" fill="#fff" stroke="#B0B8C1" stroke-width="2"/>
+<line x1="46" y1="98" x2="46" y2="138" stroke="#B0B8C1" stroke-width="2"/><line x1="126" y1="98" x2="126" y2="138" stroke="#B0B8C1" stroke-width="2"/>
+<circle cx="34" cy="70" r="13" fill="#fff" stroke="#B0B8C1" stroke-width="2"/>
+<circle cx="66" cy="60" r="8" fill="#fff" stroke="#B0B8C1" stroke-width="1.8"/><circle cx="106" cy="60" r="8" fill="#fff" stroke="#B0B8C1" stroke-width="1.8"/>
+<rect x="62" y="154" width="48" height="13" rx="3" fill="#fff" stroke="#B0B8C1" stroke-width="1.8"/></g>
+<g><circle cx="254" cy="118" r="30" fill="none" stroke="#D1D6DB" stroke-width="1.6" stroke-dasharray="4 4"/>
+<circle cx="202" cy="70" r="13" fill="none" stroke="#D1D6DB" stroke-width="1.6" stroke-dasharray="4 4"/>
+<circle cx="266" cy="120" r="30" fill="#fff" stroke="#FF9500" stroke-width="2.6"/>
+<line x1="214" y1="98" x2="214" y2="138" stroke="#B0B8C1" stroke-width="2"/><line x1="294" y1="98" x2="294" y2="138" stroke="#B0B8C1" stroke-width="2"/>
+<circle cx="216" cy="78" r="13" fill="#FFF6E5" stroke="#FF9500" stroke-width="2.4"/>
+<circle cx="234" cy="60" r="8" fill="#fff" stroke="#B0B8C1" stroke-width="1.8"/>
+<circle cx="274" cy="60" r="8" fill="#FEECEE" stroke="#F04452" stroke-width="2"/>
+<rect x="238" y="156" width="48" height="13" rx="3" fill="#FFF6E5" stroke="#FF9500" stroke-width="2.2"/>
+<path d="M202 70q8 4 14 8" stroke="#FF9500" stroke-width="1.8" fill="none"/></g>
+<text x="86" y="208" class="anno" fill="#8B95A1" text-anchor="middle" font-weight="500">모두 제자리</text>
+<text x="254" y="208" class="anno" fill="#FF9500" text-anchor="middle">빵접시가 밀렸다</text>
+<text x="254" y="226" class="anno" fill="#FF9500" text-anchor="middle">냅킨 자국이 남았다</text>
+<text x="274" y="44" class="anno" fill="#F04452" text-anchor="middle">얼음</text></svg>`,
+
+mold:`<svg class="cimg" viewBox="0 0 340 220"><rect width="340" height="220" rx="16" fill="#EAF3FA"/>
+<rect x="56" y="42" width="228" height="122" rx="12" fill="#fff" stroke="#B0B8C1" stroke-width="2.4"/>
+${[0,1,2,3].map(i=>[0,1,2].map(j=>{
+  const x=76+i*52, y=60+j*36, empty=(i===1&&j===0)||(i===2&&j===1)||(i===0&&j===2);
+  return `<rect x="${x}" y="${y}" width="42" height="28" rx="5" fill="${empty?'#F2F4F6':'#E8F5FD'}" stroke="${empty?'#D1D6DB':'#3182F6'}" stroke-width="${empty?1.6:2}" ${empty?'stroke-dasharray="4 3"':''}/>`;
+}).join('')).join('')}
+<rect x="112" y="172" width="116" height="26" rx="7" fill="#FEECEE" stroke="#F04452" stroke-width="2"/>
+<text x="170" y="190" class="anno" fill="#F04452" text-anchor="middle" font-size="13">섭 취 금 지</text>
+<text x="298" y="34" class="anno" fill="#8B95A1" text-anchor="end" font-weight="500">비어 있는 칸 3개</text></svg>`,
+
+awl:`<svg class="cimg" viewBox="0 0 340 200"><rect width="340" height="200" rx="16" fill="#F2F4F6"/>
+<g transform="rotate(-16 170 100)"><rect x="86" y="88" width="86" height="26" rx="8" fill="#4E5968"/>
+<path d="M172 92l88 9-88 9z" fill="#D1D6DB" stroke="#B0B8C1" stroke-width="1.6"/>
+<circle cx="252" cy="101" r="7" fill="#FFF6E5" stroke="#FF9500" stroke-width="2"/></g>
+<line x1="256" y1="86" x2="256" y2="152" stroke="#FF9500" stroke-width="1.6" stroke-dasharray="4 4"/>
+<text x="256" y="170" class="anno" fill="#FF9500" text-anchor="middle">끝에 액체가 말라붙었다</text></svg>`,
+
+dry:`<svg class="cimg" viewBox="0 0 340 200"><rect width="340" height="200" rx="16" fill="#F2F4F6"/>
+<rect x="30" y="34" width="280" height="132" rx="10" fill="#fff" stroke="#B0B8C1" stroke-width="2"/>
+${[[92,74,15,9],[142,62,10,6],[188,88,18,11],[236,70,12,7],[118,116,13,8],[176,132,9,5],[228,120,15,9],[74,110,8,5],[262,100,10,6]]
+ .map(([x,y,rx,ry])=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#E8F3FF" stroke="#3182F6" stroke-width="1.6"/>`).join('')}
+<text x="170" y="188" class="anno" fill="#8B95A1" text-anchor="middle" font-weight="500">사방으로 흩뿌려진 물방울이 말라붙어 있다</text></svg>`,
+
+cyan:`<svg class="cimg" viewBox="0 0 340 210"><rect width="340" height="210" rx="16" fill="#F2F4F6"/>
+<rect x="128" y="52" width="84" height="112" rx="10" fill="#fff" stroke="#B0B8C1" stroke-width="2.4"/>
+<rect x="148" y="34" width="44" height="22" rx="5" fill="#4E5968"/>
+<rect x="140" y="86" width="60" height="44" rx="5" fill="#FEECEE" stroke="#F04452" stroke-width="1.8"/>
+<path d="M170 96l6 11h-12z" fill="#F04452"/><rect x="168" y="110" width="4" height="9" rx="2" fill="#F04452"/>
+<text x="170" y="180" class="anno" fill="#F04452" text-anchor="middle">아몬드 냄새가 난다</text>
+<text x="170" y="198" class="anno" fill="#8B95A1" text-anchor="middle" font-weight="500">숨긴 흔적 없이 책상 위에 놓여 있다</text></svg>`,
+
+plan:`<svg class="cimg" viewBox="0 0 340 230"><rect width="340" height="230" rx="16" fill="#F2F4F6"/>
+<g transform="rotate(1.2 170 115)"><rect x="34" y="16" width="272" height="198" rx="6" fill="#FFFDF5" stroke="#E5E0CE" stroke-width="1.6"/>
+<rect x="52" y="34" width="236" height="34" rx="5" fill="#FEECEE"/>
+<text x="64" y="57" class="hw" font-size="19" fill="#F04452">이게 마지막 기회야. 이번에 꼭 죽인다.</text>
+<text x="60" y="96" class="hw" font-size="16" fill="#6B7684">1. 밀어버리기 — 증거 남음 ✕</text>
+<text x="60" y="122" class="hw" font-size="16" fill="#6B7684">2. 음식에 타기 — 누가 먹을지 모름 ✕</text>
+<text x="60" y="148" class="hw" font-size="16" fill="#333D4B">3. 얼음 속에 넣기 ◎</text>
+<line x1="56" y1="154" x2="188" y2="154" stroke="#FF9500" stroke-width="2.4" opacity=".55"/>
+<text x="60" y="180" class="hw" font-size="14.5" fill="#8B95A1">근데 이 자리가 한소설 자리인걸 어떻게 알고</text>
+<text x="60" y="200" class="hw" font-size="14.5" fill="#8B95A1">얼음을 넣지? 몰라 이름이라도 적어놓겠지.</text></g></svg>`,
+
+news:`<svg class="cimg" viewBox="0 0 340 220"><rect width="340" height="220" rx="16" fill="#F2F4F6"/>
+<g transform="rotate(-2 170 110)"><rect x="40" y="20" width="260" height="180" rx="4" fill="#fff" stroke="#D1D6DB" stroke-width="1.6"/>
+<rect x="58" y="40" width="150" height="16" rx="2" fill="#191F28"/>
+<rect x="58" y="66" width="224" height="8" rx="2" fill="#D1D6DB"/>
+<rect x="58" y="82" width="200" height="8" rx="2" fill="#D1D6DB"/>
+<rect x="58" y="98" width="216" height="8" rx="2" fill="#D1D6DB"/>
+<rect x="58" y="114" width="140" height="8" rx="2" fill="#D1D6DB"/>
+<rect x="58" y="136" width="180" height="10" rx="2" fill="#3182F6" opacity=".22"/>
+<text x="60" y="180" class="hw" font-size="22" fill="#F04452">죽여버릴거야 진짜</text>
+<path d="M52 160q60-14 130 2" stroke="#F04452" stroke-width="2.4" fill="none" opacity=".7"/></g>
+<text x="170" y="214" class="anno" fill="#8B95A1" text-anchor="middle" font-weight="500">옆에 살의를 담은 욕설이 적혀 있다</text></svg>`
+};
+
+/* ══════════ 캐릭터 데이터 ══════════ */
+const ME = {
+  name:'한소설', age:31, sex:'남', job:'소설가', actor:'배우 이무생',
+  culprit:false, av:'韓',
+  verdict:{ic:'⚖️', t:'당신은 범인이 아닙니다',
+    p:'다만 <b>당신도 아내를 죽이려 했습니다.</b> 수프에 살충제를 넣었습니다.',
+    s:'추궁당하면 진실을 말해야 합니다'},
+  summary:['정략결혼 계약서 때문에 과거가 밝혀지면 끝난다','투자 실패로 큰돈이 필요했다','19:30 아내의 수프에 살충제를 넣었다'],
+  chips:['유명 소설가','금수저','자격지심','화가 많음'],
+  intro:['〈우울에 빠진 남자〉의 저자이자 홍대표의 남편','윤꽃집과 과거의 악연이 있다','아내에게 부와 명예를 저당 잡혀 있다'],
+  persona:{
+    tone:['말이 빠르다','자주 끊는다','목소리가 커진다'],
+    mood:'아내가 죽었습니다. 충격은 진짜입니다.<br>동시에 <b>계약서와 빚 생각이 머리를 떠나지 않습니다.</b>',
+    act:['슬픔과 짜증이 같이 나오게 하세요',
+         '누가 의심하면 <b>바로 발끈하세요</b>',
+         '윤꽃집 이야기가 나오면 표정이 굳습니다',
+         '남 탓하는 말버릇을 쓰세요 — "그건 저 사람이…"']
+  },
+  oneLine:'<b>한소설</b>입니다. 소설을 씁니다.<br>홍대표는… 제 아내였습니다.',
+  selfIntro:'한소설입니다. 소설을 씁니다.<br>홍대표는… 제 아내였습니다. 오늘은 제 책이 영화가 되는 걸 축하하는 자리였고요.<br>이런 날이 이렇게 끝날 줄은 몰랐습니다.',
+  truth:[
+    {h:'정략결혼 계약서', p:'<b>배우자 과거로 인한 유책사항이 없어야 하며, 밝혀질 경우 이혼</b>, 그것이 한소설일 경우 <span class="hl">금전적 피해보상</span>을 물어야 한다는 조항이 있다.'},
+    {h:'되레 역공', p:'스스로 찔리는 게 있으니 오히려 <b>홍대표가 바람을 피운다는 의혹을 제기</b>하며 못되게 대했다.'},
+    {h:'살해를 계획했다', p:'아내가 과거를 캐려 하자 위협을 느껴 <b>유산과 보험을 알아봤다.</b> 자격지심으로 지른 <span class="hl">투자가 망하며</span> 큰돈이 필요해졌다.'},
+    {h:'협박편지와 파티', p:'3달간 협박편지가 도착했다. <b>윤꽃집이 보냈다고 굳게 믿고</b> 파티에 초대해 아내 앞에서 폭로하기로 했다.'},
+    {h:'자리를 미리 정해두었다', p:'주인공은 나니까. 만찬 좌석을 <b>종이에 그려 서랍에 넣어두었다.</b> 한 자리에 <span class="hl">"내 자리(상석)"</span>라고 적었다.'},
+    {h:'그리고 그날', p:'19:30, 주방으로 가서 <span class="hl">아내의 수프에 살충제를 넣었다.</span> 자리에 돌아왔을 때는 이미 아내가 내 자리에 앉아 있었다.'}
+  ],
+  trick:['살충제(벌레약)를 <b>본인 명의로</b> 구매했다','컴퓨터에 사망보험 · 유산상속 · 살충제 치사량 검색기록이 있다','19:30 주방에서 수프에 살충제를 넣었다','19:31경 나오는 것을 백비서가 목격했다','<b>잠긴 서랍</b>에 좌석 메모와 정략결혼 계약서가 있다'],
+  trickTitle:'의심받을 행적', trickHot:false,
+  timeline:[
+    {t:'사건 전', real:'살충제(벌레약)를 구매함'},
+    {t:'사건 전', real:'윤꽃집네 꽃집에 찾아가 편지 관련해서 논쟁'},
+    {t:'15:00', real:'손님맞이'},
+    {t:'17:30', real:'윤꽃집을 창피 줄 협박 편지를 가지러 방으로 올라감'},
+    {t:'17:40', real:'편지를 든 채 윤꽃집과 마주치고 말싸움', key:1},
+    {t:'19:30', real:'식당으로 먼저 이동. 백비서에게 확인을 시키고 <span class="hl">주방에서 아내의 수프에 살충제를 넣음</span>', key:1},
+    {t:'19:40', real:'식사 시작. 홍대표가 <b>내 자리</b>에 앉아 있었다', key:1},
+    {t:'20:00', real:'홍대표 사망'}
+  ],
+  tlNote:'당신의 실제 행적입니다. 숨길 수는 있어도 거짓말은 못 합니다',
+  goals:[['협박편지 의심 회피','윤꽃집이 보냈다고 믿지만 확증이 없다'],
+    ['살충제 수프 해명','"소량이었고 치사량과 무관합니다. 사인도 아닙니다. 어리석은 행동이었습니다."'],
+    ['기타 조작 부인','"증거가 있나요? 저는 수프 외에는 안 했습니다."'],
+    ['중대발표 의도 숨김','"개인적인 공지였고 파티 끝에 말하려 했습니다."']],
+  never:['증거 제시 전에 먼저 살충제 투입을 시인하지 말 것','윤꽃집과의 과거를 자세히 말하지 말 것'],
+  opening:'초대장의 <b>중대발표</b> 메모를 농담이나 프로모션 이야기로 둔갑시켜 먼저 꺼내두기',
+  crisis:[
+    {q:'19시 30분에 주방에서 뭘 하셨나요?', a:'<b>주장</b> — 수프에 살충제를 넣었습니다.<br><b>위험</b> — 19:31경 나오는 걸 백비서가 봤다. <b>1분 차이</b>가 남는다<br><b>대응</b> — "시계를 본 건 아니고 대략 그 시간이었어요."'},
+    {q:'살충제는 왜 사셨나요?', a:'<b>대응</b> — 증거가 나오기 전엔 벌레 때문이라고 한다. 구매 내역이 나오면 인정하되 <b>비치사량</b>이고 <b>사인이 아니라는 점</b>을 강조.'},
+    {q:'사망보험과 유산상속은 왜 검색했나요?', a:'<b>가장 위험한 증거다.</b> 정략결혼 계약서와 투자 실패를 인정하는 선에서 방어하되, <b>실행하지 않았다</b>는 점을 반복.'},
+    {q:'서랍을 열어주시겠습니까?', a:'<b>안에 든 것</b> — 좌석 배치 메모, 정략결혼 계약서<br><b>판단</b> — 좌석 메모는 <b>당신에게 유리합니다.</b> 아내가 앉은 자리가 원래 당신 자리였다는 증거니까요. 다만 계약서가 함께 나옵니다.'}
+  ],
+  rel:[['홍대표','아내이자 통제자. 경제와 커리어 양쪽에서 우위'],['윤꽃집','옛 연인이자 악연. 상호 적대'],
+    ['유감독','이해관계로 밀착. 협력과 불신이 공존'],['백비서','경계 대상. 아내 편에 선 사람'],['김안마','불신. 내 정보를 아내에게 보고한다']]
+};
+
+/* ══════════ 단서 ══════════ */
+const C={
+ ice:{n:'속 빈 얼음 조각',w:'식당 · 물잔',d:'얼음이 거의 녹아 바닥에 조각만 남았다. 조각 중앙에 기포가 뭉쳐 있고, 위아래로 관통한 듯한 흔적이 보인다.'},
+ water:{n:'바닥의 물 흔적',w:'식당 · 바닥',d:'한소설 좌석 쪽 바닥에 액체가 흘러 마른 자국. 다른 곳보다 축축하다.'},
+ seats:{n:'어긋난 상차림',w:'식당 · 원형 테이블',d:'시신이 앉은 자리만 냅킨 자국과 빵접시 위치가 옆자리들과 어긋나 있다.'},
+ glass:{n:'물잔',w:'식당 · 원형 테이블',d:'접시 오른쪽 위에 놓인 물잔. 얼음이 거의 녹아 있다.'},
+ tumbler:{n:'텀블러',w:'식당 · 사이드보드',d:'윤꽃집이 파티 인원수에 맞게 선물로 가져온 텀블러.'},
+ wine:{n:'와인병',w:'식당 · 사이드보드',d:'김안마가 사 온 와인. 코르크가 따져 있고 모두의 잔에 따라졌다.'},
+ body:{n:'1차 검안 소견',w:'식당 · 시신',d:'원형 테이블의 한 자리, <b>의자에 앉은 채 테이블 위로 엎어져 있다.</b> 일어선 흔적도 몸싸움 흔적도 없다.<br><br>사인 질식사 · 외상 없음 · 독물 반응 의심 · <b>입가에서 달큰하고 씁쓸한, 아몬드 같은 냄새</b>가 난다.<br>정밀 부검은 실시하지 않는다.'},
+ soup:{n:'남은 에피타이저 수프',w:'주방 · 조리대',d:'홍대표 몫만 남아 있다.'},
+ trash:{n:'살충제 용기',w:'주방 · 쓰레기통',d:'벌레약 용기가 버려져 있다.'},
+ aconite:{n:'투구꽃 화단',w:'정원',d:'"맨손으로 만지지 말 것" 표지판. 뿌리가 없고 흙이 새로 덮여 있다.'},
+ ashtray:{n:'재떨이',w:'발코니',d:'쓰고 남은 빈 전자담배 액상 박스가 들어 있다.'},
+ hallway:{n:'화장실 동선',w:'복도',d:'특이사항 없음. 다만 <b>화장실 가는 길과 식당 가는 길이 거의 같다.</b>'},
+ memo:{n:'좌석 배치 메모',w:'한소설 · 잠긴 서랍',d:'원형 테이블 좌석 배치가 그려져 있다. <span class="hl">홍대표가 앉았던 자리에 "내 자리(상석)"</span>라고 표시되어 있다.'},
+ marriage:{n:'정략결혼 계약서',w:'한소설 · 잠긴 서랍',d:'배우자 과거에 유책사항이 없어야 한다는 조항이 포함되어 있다.'},
+ bottle:{n:'물병과 물컵',w:'한소설 · 서재',d:'보리차보다 진한, 사약에 가까운 색의 물이 담겨 있다.'},
+ letters:{n:'협박편지 보관함',w:'한소설 · 서재',d:'이혼과 별거를 재촉하는 편지가 가득하다. 최근 3개월간 도착한 것들이다.'},
+ search:{n:'검색기록',w:'한소설 · 컴퓨터',d:'사망보험 · 유산상속 · 살충제 치사량.'},
+ kakao:{n:'살충제 구매 알림톡',w:'한소설 · 핸드폰',d:'본인 명의로 구매한 내역이 남아 있다.'},
+ envelope:{n:'매트리스 아래 봉투',w:'백비서 · 침실',d:'저택에 도착한 협박편지와 <span class="hl">완전히 같은 봉투</span>가 여러 장 숨겨져 있다.'},
+ usb:{n:'USB',w:'백비서 · 침실',d:'8년 전 00바이오 정보유출 사건 기사가 PDF로 저장되어 있다.'},
+ order:{n:'투구꽃 구매 기록',w:'백비서 · 소지품',d:'윤꽃집의 꽃집에서 투구꽃과 씨앗을 구매한 내역.'},
+ rec:{n:'통화 녹음',w:'백비서 · 핸드폰',d:'홍대표와의 대화가 녹음되어 있다.'},
+ radio:{n:'라디오 사연',w:'백비서 · 컴퓨터',d:'익명으로 보낸 사연 신청 내역이 남아 있다.'},
+ wall:{n:'배경화면',w:'백비서 · 핸드폰',d:'홍대표와 찍은 셀카. 하트 스티커가 붙어 있다.'},
+ nic:{n:'니코틴 원액 빈 병',w:'유감독 · 부엌',d:'전자담배 판매업소에서 주문한 고농도 원액. 비어 있다.'},
+ jar:{n:'헹궈진 과일청 병',w:'유감독 · 싱크대',d:'병목에 접착제 자국이 남아 있고, 찢어진 스티커가 함께 발견된다.'},
+ call:{n:'통화 내역',w:'유감독 · 핸드폰',d:'<b>17:40부터 18:05까지 25분간</b> 업무 통화 기록.'},
+ contract:{n:'독점 계약서',w:'유감독 · 작업실',d:'홍대표 제작사와의 7:3 독점 계약.'},
+ chat:{n:'한소설과의 카톡',w:'유감독 · 핸드폰',d:'홍대표에 대한 불만을 주고받은 대화가 남아 있다.'},
+ refuse:{n:'해외 진출 거절 증거',w:'유감독 · 작업실',d:'홍대표가 자신을 해외로 내보낼 마음이 없었다는 자료.'},
+ mold:{n:'얼음틀',w:'윤꽃집 · 부엌 냉장고',d:'"섭취금지"라고 쓰여진 얼음틀. <span class="hl">얼음 몇 개가 비어 있다.</span>'},
+ awl:{n:'송곳',w:'윤꽃집 · 부엌',d:'송곳 끝에 액체가 말라붙은 자국이 묻어 있다.'},
+ dry:{n:'식탁의 물 자국',w:'윤꽃집 · 부엌 식탁',d:'무언가가 사방으로 흩뿌려진 것처럼 방울이 뿌려져 말라붙어 있다.'},
+ cyan:{n:'청산가리 병',w:'윤꽃집 · 방 책상',d:'아몬드 냄새가 난다. 숨긴 흔적 없이 책상 위에 놓여 있다.'},
+ plan:{n:'살해방법 메모',w:'윤꽃집 · 방 책상',d:'"이게 마지막 기회야. 이번에 꼭 죽인다."라고 적힌 메모 아래로 살해방법이 나열되어 있다. 그중 하나에 <span class="hl">"근데 이 자리가 한소설 자리인걸 어떻게 알고 얼음을 넣지?"</span>라고 적혀 있다.'},
+ news:{n:'스크랩된 신문',w:'윤꽃집 · 방 책상',d:'00바이오 신제품 기밀이 지인에게 유출됐다는 기사. 옆에 <span class="hl">살의를 담은 심한 욕설</span>이 적혀 있다.'}
+};
+
+const PLACES={
+ dining :{n:'식당 · 연회실',s:'사건 현장',ic:'table',
+          clues:['seats','glass','ice','water','body','wine','tumbler']},
+ kitchen:{n:'주방',s:'음식이 준비된 곳',ic:'pot', clues:['soup','trash']},
+ garden :{n:'정원 · 발코니',s:'담배를 피우던 곳',ic:'flower', clues:['aconite','ashtray']},
+ hall   :{n:'복도 · 화장실',s:'',ic:'wc', clues:['hallway']}
+};
+
+const SUSPECTS={
+ han:{n:'한소설',av:'韓',me:1,spaces:[
+   {n:'서재',      ic:'desk',  clues:['bottle','letters']},
+   {n:'잠긴 서랍',  ic:'drawer',clues:['memo','marriage']},
+   {n:'컴퓨터',    ic:'pc',    clues:['search']},
+   {n:'핸드폰',    ic:'phone', clues:['kakao']}]},
+ bak:{n:'백비서',av:'白',spaces:[
+   {n:'침실',      ic:'bed2',  clues:['envelope','usb']},
+   {n:'컴퓨터',    ic:'pc',    clues:['radio']},
+   {n:'핸드폰',    ic:'phone', clues:['rec','wall']},
+   {n:'소지품',    ic:'bag',   clues:['order']}]},
+ yu:{n:'유감독',av:'柳',spaces:[
+   {n:'부엌',      ic:'kit',   clues:['nic']},
+   {n:'싱크대',    ic:'sink',  clues:['jar']},
+   {n:'작업실',    ic:'studio',clues:['contract','refuse']},
+   {n:'핸드폰',    ic:'phone', clues:['call','chat']}]},
+ yun:{n:'윤꽃집',av:'尹',spaces:[
+   {n:'부엌 냉장고',ic:'kit',   clues:['mold']},
+   {n:'부엌',      ic:'sink',  clues:['awl','dry']},
+   {n:'방 책상',   ic:'room',  clues:['cyan','plan','news']}]}
+};
+
+/* 결정적 증거 — 1차 조사에서는 나오지 않는다 */
+const KEY_CLUES=new Set(['ice','water','memo','mold','awl','dry','plan','cyan']);
+
+/* 모든 조사 장소를 한 곳에 모은다 */
+const LOC={};
+Object.entries(PLACES).forEach(([k,p])=>{
+  LOC['site:'+k]={key:'site:'+k, zone:'site', name:p.n, sub:p.s, ic:p.ic, room:k, clues:p.clues};
+});
+Object.entries(SUSPECTS).forEach(([k,s])=>{
+  s.spaces.forEach((sp,i)=>{
+    LOC[`sus:${k}:${i}`]={key:`sus:${k}:${i}`, zone:'sus', owner:k,
+      name:sp.n, sub:s.n, ic:sp.ic, room:k, clues:sp.clues};
+  });
+});
+
+/* 오프라인용 배분 — 서버가 없을 때만 쓴다 */
+const ORDER=['han','bak','yu','yun'];
+const MYKEY='han';
+const SEED=20260821;
+function rnd(seed){ let s=seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
+function shuf(arr,seed){ const r=rnd(seed), a=[...arr];
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function keyNum(k){ let n=0; for(const c of k) n=(n*131+c.charCodeAt(0))>>>0; return n; }
+function buildDeal(){
+  const hand={han:[],bak:[],yu:[],yun:[]};
+  const site=[], sus={};
+  Object.values(LOC).forEach(l=>l.clues.forEach(c=>{
+    if(l.zone==='site') site.push({c,loc:l.key,room:l.room});
+    else (sus[l.owner]=sus[l.owner]||[]).push({c,loc:l.key,room:l.room});
+  }));
+  shuf(site,SEED).forEach((x,i)=>hand[ORDER[i%4]].push(x));
+  Object.entries(sus).forEach(([sk,arr])=>{
+    const others=ORDER.filter(k=>k!==sk);
+    shuf(arr, SEED+keyNum(sk)).forEach((x,i)=>hand[others[i%3]].push(x));
+  });
+  const seq={};
+  ORDER.forEach(k=>{
+    const nk=shuf(hand[k].filter(x=>!KEY_CLUES.has(x.c)), SEED+keyNum(k)+7);
+    const kk=shuf(hand[k].filter(x=>KEY_CLUES.has(x.c)),  SEED+keyNum(k)+13);
+    const all=[...nk.slice(0,3), ...kk, ...nk.slice(3)];   // 1차는 비핵심만
+    seq[k]=[all.slice(0,3), all.slice(3,6), all.slice(6,9)];
+  });
+  return seq;
+}
+const DEAL=buildDeal();
+
+/* 지금까지 테이블 전체에서 빠져나간 단서 (네 명이 같은 속도로 뽑는다고 본다) */
+function goneSet(round, step){
+  const g=new Set();
+  ORDER.forEach(k=>{
+    for(let r=0;r<round-1;r++) DEAL[k][r].forEach(x=>g.add(x.c));
+    DEAL[k][round-1].slice(0,step).forEach(x=>g.add(x.c));
+  });
+  return g;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   서버 연동 (Firebase Realtime Database)
+   · mm/{방코드}/round   현재 조사 라운드 (0=조사 아님)
+   · mm/{방코드}/taken/{단서} = 가져간 사람
+   연결이 안 되면 오프라인 모드로 내려가 혼자서도 돌아간다.
+   ══════════════════════════════════════════════════════════ */
+const FB_CFG={
+  apiKey:"AIzaSyDLl-40I2ieAEopZftLP6n1djHvfmlx-Uw",
+  authDomain:"add-contents-11e26.firebaseapp.com",
+  databaseURL:"https://add-contents-11e26-default-rtdb.firebaseio.com",
+  projectId:"add-contents-11e26",
+  storageBucket:"add-contents-11e26.firebasestorage.app",
+  messagingSenderId:"127746524376",
+  appId:"1:127746524376:web:97dad6c4ee9fc8e3e683ad"
+};
+let DB=null, ONLINE=false, ROOM=null;
+function netInit(){
+  try{
+    if(!window.firebase) return false;
+    firebase.initializeApp(FB_CFG);
+    DB=firebase.database();
+    return true;
+  }catch(e){ console.warn('Firebase 초기화 실패',e); return false; }
+}
+const netReady = netInit();
+function roomRef(p){ return DB.ref('mm/'+ROOM+(p?'/'+p:'')); }
+function newCode(){
+  const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:4},()=>A[Math.floor(Math.random()*A.length)]).join('');
+}
+
+/* ── 서버에서 받은 상태 ── */
+let taken={};            // {단서id: 캐릭터키}
+let srvRound=0, srvPhase='', srvVote=0, myVotes={};
+
+function joinRoom(code, ok, fail){
+  ROOM=code.toUpperCase();
+  roomRef('at').once('value').then(s=>{
+    if(!s.exists()){ fail('그런 방이 없습니다'); return; }
+    ONLINE=true;
+    roomRef('taken').on('value', s=>{ taken=s.val()||{}; if(tab==='inv') render(); dockNet(); });
+    roomRef('round').on('value', s=>{
+      const r=s.val()||0;
+      if(r && r!==srvRound){ srvRound=r; round=r; roundDraw=[]; nav=[];
+        if(r>=2) susOpen=true;
+        toast(`${ROUND_NAME[r]}가 시작되었습니다`); if(tab==='inv') render(); }
+      srvRound=r; dockNet();
+    });
+    roomRef('phase').on('value', s=>{ srvPhase=s.val()||''; dockNet(); });
+    roomRef('vote').on('value', s=>{ srvVote=s.val()||0; render(); });
+    roomRef('votes').on('value', s=>{ myVotes=s.val()||{}; if(srvVote) render(); });
+    ok();
+  }).catch(()=>fail('연결에 실패했습니다'));
+}
+
+/* 단서 선점 — 먼저 쓴 사람이 가져간다 */
+function claim(id, done, taken_by){
+  if(!ONLINE){ done(true); return; }
+  roomRef('taken/'+id).transaction(
+    cur => (cur===null ? MYKEY : undefined),
+    (err, committed) => { committed ? done(true) : done(false); },
+    false
+  );
+}
+
+/* ══════════ 상태 ══════════ */
+const found=new Set(), starred=new Set();
+let revealed=false, tab='book', bTab='me', iTab='site', nav=[];
+let round=1, roundDraw=[];              // roundDraw = 이번 라운드에 뽑은 단서
+const DRAWS_PER_ROUND = 3;
+const ROUND_NAME = {1:'1차 조사', 2:'2차 조사', 3:'최종 조사'};
+const $=s=>document.querySelector(s), M=()=>document.getElementById('main');
+const CODE='4726';
+
+const drawsLeft = () => DRAWS_PER_ROUND - roundDraw.length;
+
+/* 방에 남아 있는 단서 수 — 지난 라운드는 전원 소진, 이번 라운드는 내 몫만 반영 */
+
+const NAMES={han:'한소설',bak:'백비서',yu:'유감독',yun:'윤꽃집'};
+function rVote(){
+  $('#tt').textContent = srvVote===1?'1차 투표':'최종 투표';
+  $('#bk').classList.remove('on');
+  const v=(myVotes['v'+srvVote]||{});
+  const mine=v[MYKEY];
+  const done=Object.keys(v).length;
+  M().innerHTML=`
+    <div class="c blue" style="text-align:center">
+      <div class="lb">${srvVote===1?'1차 투표':'최종 투표'}</div>
+      <h3>${srvVote===1?'지금 가장 의심스러운 사람은?':'범인은 누구입니까?'}</h3>
+      <p style="margin:0">${srvVote===1
+        ? '이 투표는 결과에 영향을 주지 않습니다'
+        : '이번이 진짜입니다. 신중하게 고르세요'}</p>
+    </div>
+    <div class="vopts">${ORDER.filter(k=>k!==MYKEY).map(k=>
+      `<button class="vopt ${mine===k?'on':''}" data-v="${k}">
+        <span class="va">${AV[SUSPECTS[k].av]}</span>
+        <span class="vnm">${NAMES[k]}</span>
+        ${mine===k?'<span class="vck">✓</span>':''}</button>`).join('')}</div>
+    <div class="vstat">${mine?`<b>${NAMES[mine]}</b> 님을 지목했습니다 · `:''}${done} / 4 완료</div>
+    ${mine?`<p style="text-align:center;font-size:14px;color:var(--g500);margin-top:8px">
+      다시 눌러 바꿀 수 있습니다</p>`:''}`;
+  M().querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{
+    if(!ONLINE){ toast('서버에 연결되어 있지 않습니다'); return; }
+    roomRef(`votes/v${srvVote}/${MYKEY}`).set(b.dataset.v)
+      .then(()=>toast(`${NAMES[b.dataset.v]} 지목`)).catch(()=>toast('전송 실패'));
+  });
+}
+
+function render(){
+  if(srvVote){ rVote(); window.scrollTo({top:0}); return; }
+  $('#bk').classList.toggle('on',nav.length>0);
+  if(tab==='book'){$('#tt').textContent='캐릭터북';rBook();}
+  else if(tab==='inv'){rInv();}
+  else {$('#tt').textContent='내 단서함';rKit();}
+  window.scrollTo({top:0});
+}
+
+/* ── 캐릭터북 ── */
+function rBook(){
+  const T=[['me','나'],['truth','진실'],['tl','타임라인'],['plan','전략']];
+  let h=`<div class="sub">${T.map(([k,l])=>`<button class="${bTab===k?'on':''}" data-b="${k}">${l}</button>`).join('')}</div>`;
+  if(bTab==='me'){
+    h+=`<div class="c prof">${AV[ME.av]}
+      <div class="nm">${ME.name}</div>
+      <div class="mt">${ME.age}세 · ${ME.sex} · ${ME.job}</div>
+      <div class="chips">${ME.chips.map(c=>`<span>${c}</span>`).join('')}</div></div>
+
+      <button class="secret ${revealed?'open':''}" id="sec">
+        ${revealed
+          ? `<div class="verd ${ME.culprit?'bad':'ok'}"><div class="ic">${ME.verdict.ic}</div>
+              <h3>${ME.verdict.t}</h3><p>${ME.verdict.p}</p><div class="s">${ME.verdict.s}</div></div>`
+          : `<div class="lock2"><div class="li">🔒</div>
+              <div class="lt">당신의 비밀</div>
+              <div class="ld">주변에 아무도 보지 않을 때 눌러주세요</div></div>`}
+      </button>
+
+      <div class="c"><div class="lb">자기소개 · 이렇게 말하면 됩니다</div>
+        <div class="sayline">${ME.oneLine}</div>
+        <div class="saytag">여유가 있으면 이렇게 더</div>
+        <div class="say">${ME.selfIntro}</div></div>
+
+      <div class="c"><div class="lb">말투</div>
+        <div class="chips" style="justify-content:flex-start">${ME.persona.tone.map(t=>`<span>${t}</span>`).join('')}</div>
+      </div>
+
+      <div class="c amber"><div class="lb">지금 당신의 기분</div>
+        <p style="margin:0">${ME.persona.mood}</p></div>
+
+      <div class="c"><div class="lb">이렇게 연기하세요</div>
+        <ul>${ME.persona.act.map(a=>`<li>${a}</li>`).join('')}</ul></div>
+
+      <div class="c"><div class="lb">인물 관계</div>
+        ${ME.rel.map(([n,d])=>`<p style="font-size:16px"><b>${n}</b> · ${d}</p>`).join('')}</div>
+      <div class="c blue"><div class="lb">이 자리에 없는 두 사람</div>
+        <p><b>홍대표</b> 35 · 여 · 영화제작사 대표. 한소설의 아내. <b class="hl">오늘 저녁 사망했다</b></p>
+        <p><b>김안마</b> 27 · 남 · 부부의 전담 안마사. 오늘 와인을 사 왔다. 시력이 나빠 지팡이를 짚는다</p></div>`;
+  }
+  if(bTab==='truth'){
+    h+=`<div class="sum">${ME.summary.map((s,i)=>`<div><b>${i+1}</b><span>${s}</span></div>`).join('')}</div>`;
+    h+=ME.truth.map(t=>`<div class="c"><h4>${t.h}</h4><p>${t.p}</p></div>`).join('');
+    h+=`<div class="c ${ME.trickHot?'red':''}"><div class="lb">${ME.trickTitle}</div>
+      <ul>${ME.trick.map((x,i)=>`<li><b>${i+1}.</b> ${x}</li>`).join('')}</ul></div>`;
+  }
+  if(bTab==='tl'){
+    h+=`<div class="c"><div class="lb">타임라인</div><p style="margin:0">${ME.tlNote}</p></div>
+      <div class="tl">${ME.timeline.map(r=>`<div class="row ${r.key?'key':''}">
+        <time>${r.t}</time><div class="dot"></div>
+        <div><div class="bx">${r.real}</div>
+        ${r.fake?`<div class="fake"><em>남에게 말할 것</em>${r.fake}</div>`:''}</div></div>`).join('')}</div>`;
+  }
+  if(bTab==='plan'){
+    h+=`<div class="c"><div class="lb">숨겨야 할 것</div>
+      ${ME.goals.map(([g,d])=>`<h4>${g}</h4><p>${d}</p>`).join('')}</div>
+      <div class="c red"><div class="lb">절대 금지</div>
+        <ul>${ME.never.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+      <div class="c amber"><div class="lb">먼저 꺼낼 이야기</div><p>${ME.opening}</p></div>
+      <div class="gh"><span class="gt">추궁 대응</span><span class="gn">눌러서 펼치기</span></div>
+      ${ME.crisis.map((c,i)=>`<div class="cri" data-cr="${i}">
+        <div class="q">“${c.q}”<span class="ar">▾</span></div><div class="a">${c.a}</div></div>`).join('')}`;
+  }
+  M().innerHTML=h;
+  if($('#sec')) $('#sec').onclick=()=>{ revealed=!revealed; rBook(); };
+  M().querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{bTab=b.dataset.b;render();});
+  M().querySelectorAll('[data-cr]').forEach(el=>el.querySelector('.q').onclick=()=>el.classList.toggle('open'));
+}
+
+
+/* 방 그림 — 이제 클릭 대상이 아니라 분위기용 */
+function hp(id,shape){ return `<g class="hs static">${shape}</g>`; }
+const SCENES={
+dining:()=>`<svg class="scene" viewBox="0 0 400 280">
+<rect class="flr" width="400" height="280" rx="18"/><rect class="wl" x="10" y="10" width="380" height="260" rx="14"/>
+<rect class="fn" x="248" y="22" width="122" height="28" rx="6"/>
+<circle cx="276" cy="36" r="6" fill="#3A3E48"/><circle cx="300" cy="36" r="6" fill="#3A3E48"/><circle cx="332" cy="36" r="6" fill="#4593FC" opacity=".5"/>
+<rect class="fn" x="26" y="22" width="36" height="88" rx="5"/>
+<path d="M35 22v88M44 22v88M53 22v88" stroke="#4B505B" stroke-width="1.6"/>
+<circle class="fn" cx="200" cy="152" r="60"/>
+<circle cx="200" cy="218" r="10" fill="#3B2026" stroke="#FF5F6D" stroke-width="2"/>
+<circle cx="147" cy="186" r="10" fill="#2B2E36" stroke="#4B505B" stroke-width="1.8"/>
+<circle cx="147" cy="118" r="10" fill="#2B2E36" stroke="#4B505B" stroke-width="1.8"/>
+<circle cx="200" cy="88" r="10" fill="#2B2E36" stroke="#4B505B" stroke-width="1.8"/>
+<circle cx="253" cy="118" r="10" fill="#2B2E36" stroke="#4B505B" stroke-width="1.8"/>
+<circle cx="253" cy="186" r="10" fill="#2B2E36" stroke="#4B505B" stroke-width="1.8"/>
+<path d="M186 234q14-10 28 0 7 16-2 29-11 7-24 0-9-13-2-29z" fill="#3B2026" stroke="#FF5F6D" stroke-width="2.2" stroke-dasharray="5 4"/>
+<ellipse cx="94" cy="196" rx="26" ry="14" fill="#17304E" stroke="#4593FC" stroke-width="1.8"/>
+<rect class="fn" x="326" y="192" width="34" height="34" rx="7"/>
+<text class="lb2" x="200" y="266">▲ 복도 방향</text></svg>`,
+kitchen:()=>`<svg class="scene" viewBox="0 0 400 250">
+<rect class="flr" width="400" height="250" rx="18"/><rect class="wl" x="10" y="10" width="380" height="230" rx="14"/>
+<rect class="fn" x="42" y="50" width="150" height="46" rx="7"/>
+<circle cx="82" cy="73" r="12" fill="#3A3E48"/><circle cx="118" cy="73" r="12" fill="#17304E" stroke="#4593FC" stroke-width="1.6"/>
+<rect class="fn" x="228" y="50" width="132" height="46" rx="7"/>
+<rect x="254" y="62" width="48" height="24" rx="4" fill="#1D1F26"/>
+<path d="M152 156h56l-7 62h-42z" fill="#17304E" stroke="#4593FC" stroke-width="2.2"/>
+<rect x="148" y="146" width="64" height="12" rx="6" fill="#4593FC" opacity=".35"/>
+</svg>`,
+garden:()=>`<svg class="scene" viewBox="0 0 400 230">
+<rect class="flr" width="400" height="230" rx="18"/><rect class="wl" x="10" y="10" width="380" height="210" rx="14"/>
+<path d="M30 176h340" stroke="#22D18B" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+<g transform="translate(120,60)"><path d="M0 96V38" stroke="#22D18B" stroke-width="3" stroke-linecap="round"/>
+<circle cx="0" cy="24" r="16" fill="#A78BFA" opacity=".85"/><circle cx="-20" cy="38" r="12" fill="#A78BFA" opacity=".6"/>
+<circle cx="20" cy="38" r="12" fill="#A78BFA" opacity=".6"/></g>
+<g transform="translate(196,84)"><path d="M0 72V30" stroke="#22D18B" stroke-width="3" stroke-linecap="round"/>
+<circle cx="0" cy="18" r="13" fill="#A78BFA" opacity=".7"/></g>
+<rect x="248" y="120" width="52" height="14" rx="4" fill="#3B2F16" stroke="#FFAA33" stroke-width="1.6"/>
+<ellipse cx="320" cy="150" rx="30" ry="12" fill="#2B2E36" stroke="#4B505B" stroke-width="1.8"/>
+<text class="lb2" x="274" y="112">투구꽃 화단</text></svg>`,
+hall:()=>`<svg class="scene" viewBox="0 0 400 210">
+<rect class="flr" width="400" height="210" rx="18"/>
+<path d="M40 190 L130 30 H270 L360 190 Z" fill="#22242B" stroke="#4B505B" stroke-width="2"/>
+<rect x="132" y="70" width="42" height="80" rx="4" fill="#1D1F26" stroke="#4B505B" stroke-width="1.6"/>
+<rect x="226" y="70" width="42" height="80" rx="4" fill="#1D1F26" stroke="#4B505B" stroke-width="1.6"/>
+<circle cx="166" cy="112" r="3.4" fill="#6B7280"/><circle cx="234" cy="112" r="3.4" fill="#6B7280"/>
+<text class="lb2" x="153" y="166">화장실</text><text class="lb2" x="247" y="166">식당</text>
+</svg>`
+};
+
+/* ── 조사 ── */
+function canDraw(c){ return round>=2 || !KEY_CLUES.has(c); }
+
+function poolAt(key){
+  const l=LOC[key];
+  if(l.zone==='sus' && l.owner===MYKEY) return [];
+  if(ONLINE) return l.clues.filter(c=>!taken[c] && canDraw(c));
+  return (DEAL[MYKEY][round-1]||[]).filter(x=>x.loc===key && !found.has(x.c));
+}
+function leftAt(key){
+  const l=LOC[key];
+  if(ONLINE) return l.clues.filter(c=>!taken[c]).length;
+  let gone=0;
+  ORDER.forEach(k=>{ for(let r=0;r<round-1;r++) gone+=DEAL[k][r].filter(x=>x.loc===key).length; });
+  gone += roundDraw.filter(x=>x.loc===key).length;
+  return Math.max(0, l.clues.length-gone);
+}
+
+function rInv(){
+  if(nav.length===0){ rMap(); return; }
+  const top=nav[nav.length-1];
+  if(top.t==='loc') rLoc(top.k);
+  else if(top.t==='sus') rSus(top.k);
+  else rClue(top);
+}
+
+/* 저택 평면도 */
+function planSVG(){
+  const c=k=>leftAt('site:'+k);
+  const cell=(k,x,y,w,ht,label,sub)=>{
+    const n=c(k);
+    return `<g class="rm" data-l="site:${k}">
+      <rect class="rr" x="${x}" y="${y}" width="${w}" height="${ht}" rx="12"/>
+      <text class="rn" x="${x+w/2}" y="${y+ht/2-6}">${label}</text>
+      <text class="rs" x="${x+w/2}" y="${y+ht/2+14}">${sub}</text>
+      <g class="badge" transform="translate(${x+w-26},${y+20})">
+        <circle r="13.5" class="bc ${n?'':'zero'}"/>
+        <text class="bt" y="5">${n}</text></g>
+    </g>`;
+  };
+  return `<svg class="plan" viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg">
+    <rect class="ground" x="6" y="6" width="388" height="328" rx="18"/>
+    ${cell('kitchen',18,18,150,110,'주방','음식이 준비된 곳')}
+    ${cell('dining',180,18,202,190,'식당 · 연회실','사건 현장')}
+    ${cell('hall',18,140,150,68,'복도','화장실')}
+    ${cell('garden',18,220,364,100,'정원 · 발코니','담배를 피우던 곳')}
+    <text class="floornote" x="200" y="332">저택 1층 · 서재와 침실은 2층</text>
+  </svg>`;
+}
+
+function rMap(){
+  $('#tt').textContent='조사';
+  const used=roundDraw.length, left=drawsLeft();
+  let h=`<div class="rstat">
+    <div class="rl"><b>${ROUND_NAME[round]}</b><span>${left>0?`조사 기회 ${left}회 남음`:'조사 완료'}</span></div>
+    <div class="pips">${[0,1,2].map(i=>`<i class="${i<used?'on':''}"></i>`).join('')}</div></div>`;
+  const anywhere=Object.keys(LOC).some(k=>poolAt(k).length>0);
+  if(!anywhere && left>0) h+=`<div class="keynote" style="background:var(--blue-l);color:var(--g700)">
+    당신이 더 조사할 수 있는 곳이 없습니다.<br>남은 증거는 <b>진행자가 공개</b>합니다.</div>`;
+  if(left===0) h+=`<div class="done"><div class="ic">✅</div>
+    <div class="wt">${ROUND_NAME[round]} 완료</div>
+    <div class="wd">회의에서 <b>말로 공유</b>하세요.</div>
+    ${!ONLINE&&round<3?`<button class="act" id="nextr">${ROUND_NAME[round+1]} 시작</button>`:''}</div>`;
+
+  h+=`<div class="secthead">저택</div>${planSVG()}`;
+  h+=`<div class="secthead">용의자의 공간</div>
+    <div class="rooms">${ORDER.map(k=>{
+      const s=SUSPECTS[k];
+      const n=s.spaces.reduce((a,sp,i)=>a+leftAt(`sus:${k}:${i}`),0);
+      return `<button class="rowbtn ${s.me?'me':''} ${n?'':'empty'}" data-s="${k}">
+        <span class="th">${AV[s.av]}</span>
+        <span><span class="nm">${s.n}</span><br>
+        <span class="s2">${s.spaces.map(x=>x.n).join(' · ')}${s.me?' · 나':''}</span></span>
+        <span class="ct ${n?'':'zero'}">${n?`단서 ${n}`:'없음'}</span></button>`;}).join('')}</div>`;
+  M().innerHTML=h;
+  if($('#nextr')) $('#nextr').onclick=nextRound;
+  M().querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{nav=[{t:'loc',k:b.dataset.l}];render();});
+  M().querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{nav=[{t:'sus',k:b.dataset.s}];render();});
+}
+
+function rSus(k){
+  const s=SUSPECTS[k]; $('#tt').textContent=s.n;
+  M().innerHTML=`<div class="susart">${AV[s.av]}<div class="sn">${s.n}</div>
+      <div class="ss">${s.me?'당신의 공간입니다':'경찰이 확보한 생활공간'}</div></div>
+    <div class="og">${s.spaces.map((sp,i)=>{
+      const key=`sus:${k}:${i}`, n=leftAt(key);
+      return `<button class="oc ${n?'':'done'}" data-l="${key}">${IC[sp.ic]||''}
+        <div class="nm">${sp.n}</div>
+        <div class="ct ${n?'':'zero'}">${n?`단서 ${n}`:'없음'}</div></button>`;}).join('')}</div>
+    <button class="act g" id="b2">다른 곳 보기</button>`;
+  $('#b2').onclick=()=>{nav=[];render();};
+  M().querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{nav.push({t:'loc',k:b.dataset.l});render();});
+}
+
+function rLoc(key){
+  const l=LOC[key]; $('#tt').textContent=l.name;
+  const n=leftAt(key), left=drawsLeft(), mine=poolAt(key);
+  const own = l.zone==='sus' && l.owner===MYKEY;
+  let h = (l.zone==='site'&&SCENES[l.room]) ? SCENES[l.room]()
+        : `<div class="roomart">${IC[l.ic]||''}</div>`;
+  h += `<div class="c" style="text-align:center">
+    <h3>${l.name}</h3>
+    <p style="margin:0 0 4px">${own?'당신의 공간입니다':l.sub||''}</p>
+    <div class="bignum">${n}<span>개 남음</span></div>
+    ${own ? `<div class="lockmsg">경찰은 당신에게 당신 집 증거를 맡기지 않습니다</div>`
+      : left===0 ? `<div class="lockmsg">이번 라운드 조사를 모두 마쳤습니다</div>`
+      : `<button class="act" id="dig">여기를 조사한다 <span class="cnt">${left}회 남음</span></button>`}
+    <button class="act g" id="b2">다른 곳 보기</button></div>`;
+  M().innerHTML=h;
+  $('#b2').onclick=()=>{ nav = l.zone==='sus' ? [{t:'sus',k:l.owner}] : []; render(); };
+  if($('#dig')) $('#dig').onclick=()=>tryDig(key,0);
+}
+
+function tryDig(key,attempt){
+  const pool=poolAt(key);
+  if(!pool.length || attempt>4){ emptyDig(key); return; }
+  const pick=pool[Math.floor(Math.random()*pool.length)];
+  const id = ONLINE ? pick : pick.c;
+  const btn=$('#dig'); if(btn){ btn.disabled=true; btn.textContent='조사 중…'; }
+  claim(id, ok=>{
+    if(!ok){ tryDig(key,attempt+1); return; }
+    found.add(id); roundDraw.push({c:id, loc:key}); dock();
+    nav=[{t:'clue',c:id,back:key}]; render();
+  });
+}
+
+function emptyDig(key){
+  const l=LOC[key];
+  M().innerHTML=`<div class="c" style="text-align:center;padding:34px 20px">
+    <div style="font-size:40px;margin-bottom:12px">🔎</div>
+    <h3>아무것도 나오지 않았습니다</h3>
+    <p>한참을 뒤졌지만 새로 나오는 것이 없습니다.<br>다른 곳을 살펴보세요.</p>
+    <p style="font-size:14px;color:var(--g500)">조사 기회는 소모되지 않았습니다.</p>
+    <button class="act" id="b3">다른 곳 보기</button></div>`;
+  $('#b3').onclick=()=>{ nav = l.zone==='sus' ? [{t:'sus',k:l.owner}] : []; render(); };
+}
+
+function rClue(top){
+  const c=C[top.c]; $('#tt').textContent=c.n;
+  const st=starred.has(top.c);
+  M().innerHTML=`<div class="newtag">새 단서를 확보했습니다</div>
+    <div class="c">${IMG[top.c]||''}
+    <h3>${c.n}</h3><div class="where">${c.w}</div><p>${c.d}</p>
+    <button class="act g ${st?'star':''}" id="sr">${st?'★ 중요 표시함':'☆ 중요 표시하기'}</button>
+    <button class="act" id="b2">계속 조사하기</button></div>`;
+  $('#sr').onclick=()=>{ st?starred.delete(top.c):starred.add(top.c); render(); };
+  $('#b2').onclick=()=>{ nav=[]; render(); };
+}
+
+function nextRound(){
+  if(round>=3) return;
+  round++; roundDraw=[]; nav=[]; toast(`${ROUND_NAME[round]}가 시작되었습니다`); render();
+}
+
+/* ── 단서함 ── */
+const SRC=[{k:'식당',m:['식당']},{k:'주방',m:['주방']},{k:'정원 · 발코니',m:['정원','발코니']},
+ {k:'복도',m:['복도']},{k:'한소설',m:['한소설']},{k:'백비서',m:['백비서']},
+ {k:'유감독',m:['유감독']},{k:'윤꽃집',m:['윤꽃집']}];
+const srcOf=id=>{const w=C[id].w;const h=SRC.find(s=>s.m.some(x=>w.startsWith(x)));return h?h.k:'기타';};
+const kitem=id=>{const c=C[id],st=starred.has(id);
+  return `<button class="ki ${st?'st':''}" data-k="${id}"><span class="s">${st?'★':'☆'}</span>
+    <span><span class="n">${c.n}</span><span class="d">${c.d}</span></span></button>`;};
+function rKit(){
+  if(!found.size){M().innerHTML=`<div class="kempty">아직 담은 단서가 없어요<br>조사 탭에서 현장을 살펴보세요</div>`;return;}
+  const stars=[...found].filter(id=>starred.has(id));
+  let h='';
+  if(stars.length) h+=`<div class="gh"><span class="gt">내가 표시한 것</span><span class="gn">${stars.length}</span></div>`+stars.map(kitem).join('');
+  SRC.forEach(s=>{const l=[...found].filter(id=>srcOf(id)===s.k);
+    if(l.length) h+=`<div class="gh"><span class="gt">${s.k}</span><span class="gn">${l.length}</span></div>`+l.map(kitem).join('');});
+  h+=`<p style="font-size:14.5px;color:var(--g500);text-align:center;margin-top:20px;line-height:1.8;font-weight:500">
+    단서는 자동으로 공유되지 않아요<br>회의 때 <b>말로 꺼내야</b> 다른 사람이 압니다</p>`;
+  M().innerHTML=h;
+  M().querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>openClue(b.dataset.k));
+}
+
+/* ── 공통 ── */
+function dock(){
+  $('#cnt').textContent=found.size;
+  $('#dt').style.display=found.size?'inline-block':'none';
+  const l=[...found].pop();
+  $('#last').textContent = l?`방금 · ${C[l].n}`:'';
+}
+/* 단서 팝업 — 목록은 그대로 두고 그 단서만 띄운다 */
+function openClue(id){
+  const c=C[id], st=starred.has(id);
+  document.getElementById('pop').innerHTML=`
+    <div class="pbg"></div>
+    <div class="pcd">
+      ${IMG[id]||''}
+      <h3>${c.n}</h3><div class="where">${c.w}</div><p>${c.d}</p>
+      <button class="act g ${st?'star':''}" id="pst">${st?'★ 중요 표시함':'☆ 중요 표시하기'}</button>
+      <button class="act" id="pcl">닫기</button>
+    </div>`;
+  document.getElementById('pop').classList.add('on');
+  document.querySelector('#pop .pbg').onclick=closeClue;
+  document.getElementById('pcl').onclick=closeClue;
+  document.getElementById('pst').onclick=()=>{
+    starred.has(id)?starred.delete(id):starred.add(id);
+    openClue(id);
+    const row=document.querySelector(`[data-k="${id}"]`);
+    if(row){ row.classList.toggle('st', starred.has(id));
+      row.querySelector('.s').textContent = starred.has(id)?'★':'☆'; }
+  };
+}
+function closeClue(){ document.getElementById('pop').classList.remove('on'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeClue(); });
+
+let tt; function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('on');
+  clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),1800);}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');tab=b.dataset.t;nav=[];render();});
+$('#bk').onclick=()=>{if(nav.length){nav.pop();render();}};
+if(ME.culprit) document.body.classList.add('culprit');
+
+/* ── 방 입장 ── */
+function dockNet(){
+  const el=$('#net'); if(!el) return;
+  el.textContent = ONLINE ? `${ROOM} · ${srvPhase||'대기'}` : '오프라인';
+  el.className = 'net'+(ONLINE?'':' off');
+}
+function showGate(){
+  const url=new URLSearchParams(location.search).get('r')||'';
+  document.getElementById('gate').innerHTML=`
+    <div class="gcard">
+      <div class="gav">${AV[ME.av]}</div>
+      <div class="gnm">${ME.name}</div>
+      <div class="gsub">당신이 맡을 인물입니다</div>
+      <div class="gl">공용 화면의 <b>방 코드</b>를 입력하세요</div>
+      <input id="gc" maxlength="4" autocapitalize="characters" placeholder="ABCD" value="${url}">
+      <button class="act" id="gg">입장하기</button>
+      <div class="gerr" id="ge"></div>
+      <button class="act g" id="gof">서버 없이 시작하기</button>
+    </div>`;
+  const go=()=>{
+    const c=$('#gc').value.trim().toUpperCase();
+    if(c.length!==4){ $('#ge').textContent='네 자리를 입력하세요'; return; }
+    if(!netReady){ $('#ge').textContent='서버에 연결할 수 없습니다'; return; }
+    $('#gg').disabled=true; $('#gg').textContent='연결 중…';
+    joinRoom(c, ()=>{ document.getElementById('gate').style.display='none'; render(); dock(); dockNet(); },
+      msg=>{ $('#ge').textContent=msg; $('#gg').disabled=false; $('#gg').textContent='입장하기'; });
+  };
+  $('#gg').onclick=go;
+  $('#gc').addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
+  $('#gof').onclick=()=>{ ONLINE=false; document.getElementById('gate').style.display='none';
+    render(); dock(); dockNet(); toast('오프라인 모드로 시작합니다'); };
+}
+showGate();
+render(); dock();
+</script>
+</body>
+</html>
