@@ -320,6 +320,12 @@ main{overflow-y:auto!important;overflow-x:hidden}
 /* GM 배지가 안내문을 가려서 제거 */
 .vu-gm .script::before{display:none!important}
 .vu-gm .script{padding-left:22px!important;padding-top:18px!important}
+
+.bgmbtn{background:rgba(169,138,224,.14);border:1px solid rgba(169,138,224,.3);
+  color:#c9a7ff;border-radius:99px;padding:6px 14px;font-size:12.5px;font-weight:700;
+  cursor:pointer;font-family:inherit;white-space:nowrap;transition:.15s}
+.bgmbtn:hover{background:rgba(169,138,224,.22)}
+.bgmbtn.off{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:#6b6478}
 </style>
 <link rel="stylesheet" href="assets/visual-upgrade.css">
 <style>
@@ -437,6 +443,7 @@ main{overflow:hidden}
 
 <div class="hdr">
   <div class="bd">BEOLTOON <span>/ 저택 살인사건</span></div>
+  <button class="bgmbtn" id="bgmBtn" type="button">♪ 음악 켜짐</button>
   <div class="room" id="room"></div>
   <div class="st" id="hstat">시작 대기</div>
 </div>
@@ -792,6 +799,43 @@ let ri=0, left=0, tick=null, paused=false, rev=0;
 let rvMode='stopped', rvElapsed=0, rvStarted=0, rvFinished=false;
 let rvTimers=[], rvFrame=null, rvAudio=null;
 const $=s=>document.querySelector(s);
+
+/* ══════════════════════════════════════════════════
+   배경음악 — 게임 내내 반복 재생
+   나레이션이 흐르는 동안 자동으로 더 작아진다(더킹).
+   ══════════════════════════════════════════════════ */
+const BGM_SRC='assets/bgm.mp3';
+const BGM_BASE=0.13;   // 평소 음량
+const BGM_DUCK=0.045;  // 나레이션 중 음량
+let bgm=null, bgmOn=true;
+function initBgm(){
+  if(bgm) return bgm;
+  bgm=new Audio(BGM_SRC); bgm.loop=true; bgm.preload='auto'; bgm.volume=0;
+  return bgm;
+}
+function bgmStart(){ if(!bgmOn) return; initBgm().play().catch(()=>{}); }
+function bgmStop(){ if(bgm){ bgm.pause(); try{bgm.currentTime=0;}catch(e){} } }
+function paintBgmBtn(){
+  const b=document.getElementById('bgmBtn'); if(!b) return;
+  b.textContent = bgmOn ? '♪ 음악 켜짐' : '♪ 음악 꺼짐';
+  b.classList.toggle('off', !bgmOn);
+}
+function toggleBgm(){
+  bgmOn=!bgmOn;
+  if(bgmOn) bgmStart(); else if(bgm) bgm.pause();
+  paintBgmBtn();
+}
+/* 음량을 부드럽게 오르내린다 */
+setInterval(()=>{
+  if(!bgm || bgm.paused) return;
+  const narr = (typeof proAudio!=='undefined' && proAudio && !proAudio.paused)
+            || (typeof revAudio!=='undefined' && revAudio && !revAudio.paused);
+  const t = narr ? BGM_DUCK : BGM_BASE;
+  const d = t - bgm.volume;
+  bgm.volume = Math.abs(d)>0.002 ? Math.max(0,Math.min(1,bgm.volume+d*0.12)) : t;
+}, 110);
+
+
 
 /* ══════════════════════════════════════════════════════════
    서버 연동 (Firebase Realtime Database)
@@ -1362,6 +1406,7 @@ let tt; function toast(m){ const el=$('#toast'); el.textContent=m; el.classList.
 /* 이벤트 */
 $('#go').addEventListener('click',()=>initProAudio());
 $('#go').onclick = ()=>{
+  bgmStart();
   pro=0;proElapsed=0;proFinished=false;proMode='playing';show('#s-pro');paintPro();runProScene();
 };
 $('#proPlay').onclick = ()=>{
@@ -1394,7 +1439,7 @@ $('#rvSkip').onclick = ()=>{
   $('#rvProgress').style.width='100%'; $('#rvTime').textContent='00:00'; updateRevealControls();
 };
 $('#rvPrev').onclick = ()=>{if(rev<1)return;const playing=rvMode==='playing';rev--;rvElapsed=0;rvFinished=false;paintRev();if(playing)runRevealScene();};
-$('#tReset').onclick = ()=>{ if(confirm('처음으로 돌아갑니다.')) location.reload(); };
+$('#tReset').onclick = ()=>{ bgmStop(); if(confirm('처음으로 돌아갑니다.')) location.reload(); };
 
 
 
@@ -1411,6 +1456,8 @@ $('#tSched').onclick = ()=>{
 /* 나레이션 미리 받아두기 · 캐릭터 QR 표시 */
 try{ initProAudio(); }catch(e){ console.warn(e); }
 try{ paintQR(); }catch(e){ console.warn(e); }
+try{ initBgm(); paintBgmBtn();
+     document.getElementById('bgmBtn').onclick=toggleBgm; }catch(e){ console.warn(e); }
 </script>
 </body>
 </html>
