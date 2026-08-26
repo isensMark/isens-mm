@@ -327,9 +327,9 @@ body.culprit .sum b{background:var(--red)}
 #pop p{font-size:16.5px;line-height:1.7;color:var(--g700);margin-bottom:4px}
 #pop .ptag{background:var(--blue-xl);border-radius:12px;padding:11px;text-align:center;
   font-size:14.5px;font-weight:700;color:var(--blue);margin-top:12px}
-.sayline{background:var(--blue-l);border-radius:14px;padding:16px 18px;
-  font-size:18px;font-weight:700;color:var(--g900);line-height:1.6;letter-spacing:-.02em}
-.saytag{font-size:13px;font-weight:700;color:var(--g500);margin:14px 0 8px}
+.sayadd{margin-top:14px;padding-top:14px;border-top:1px solid var(--g200);
+  font-size:14.5px;line-height:1.7;color:var(--g600);font-weight:500}
+.sayadd b{color:var(--g800);font-weight:800}
 #gate{position:fixed;inset:0;z-index:80;background:#0E1116;
   display:flex;align-items:center;justify-content:center;padding:24px}
 .gcard{width:100%;max-width:380px;text-align:center}
@@ -384,10 +384,10 @@ body.culprit .sum b{background:var(--red)}
 <script>
 /* ══════════ 아이콘 ══════════ */
 const AV={
- 尹:`<img class="pav" src="assets/portrait-yoon.png" alt="윤꽃집">`,
- 韓:`<img class="pav" src="assets/portrait-han.png"  alt="한소설">`,
- 白:`<img class="pav" src="assets/portrait-baek.png" alt="백비서">`,
- 柳:`<img class="pav" src="assets/portrait-yoo.png"  alt="유감독">`
+ 尹:`<img class="pav" src="assets/portrait-yoon.jpg" alt="윤꽃집">`,
+ 韓:`<img class="pav" src="assets/portrait-han.jpg"  alt="한소설">`,
+ 白:`<img class="pav" src="assets/portrait-baek.jpg" alt="백비서">`,
+ 柳:`<img class="pav" src="assets/portrait-yoo.jpg"  alt="유감독">`
 };
 
 const IC={
@@ -573,7 +573,6 @@ const ME = {
          '다툼이 생기면 중재하려 드세요',
          '한소설에게는 미묘하게 차갑게 대하세요']
   },
-  oneLine:'<b>백비서</b>라고 합니다. 이 집 살림과 대표님 일정을 맡고 있어요.<br>홍대표님과는 어릴 때부터 알던 사이예요.',
   selfIntro:'백비서라고 합니다. 이 집 살림과 대표님 일정을 맡고 있어요.<br>홍대표님과는… 어릴 때부터 알던 사이예요. 소꿉친구였어요.<br>오늘 준비도 제가 다 했는데, 이런 일이.',
   truth:[
     {h:'남몰래 짝사랑했다', p:'소울메이트처럼 보필하며 <b>비서 일까지 공부해 보조할 정도로</b> 노력했다. 그 마음은 한 번도 말한 적이 없다.'},
@@ -776,14 +775,16 @@ let srvRound=0, srvPhase='', srvVote=0, myVotes={};
 
 function joinRoom(code, ok, fail){
   ROOM=code.toUpperCase();
+  try{ sessionStorage.setItem('mmRoom', ROOM); }catch(e){}
   roomRef('at').once('value').then(s=>{
     if(!s.exists()){ fail('그런 방이 없습니다'); return; }
     ONLINE=true;
-    roomRef('taken').on('value', s=>{ taken=s.val()||{}; if(tab==='inv') render(); dockNet(); });
+    roomRef('taken').on('value', s=>{ taken=s.val()||{}; restoreMine(); if(tab==='inv') render(); dockNet(); });
     roomRef('round').on('value', s=>{
       const r=s.val()||0;
-      if(r && r!==srvRound){ srvRound=r; round=r; roundDraw=[]; nav=[];
+      if(r && r!==srvRound){ srvRound=r; round=r; nav=[];
         if(r>=2) susOpen=true;
+        restoreMine();
         toast(`${ROUND_NAME[r]}가 시작되었습니다`); if(tab==='inv') render(); }
       srvRound=r; dockNet();
     });
@@ -795,13 +796,32 @@ function joinRoom(code, ok, fail){
 }
 
 /* 단서 선점 — 먼저 쓴 사람이 가져간다 */
-function claim(id, done, taken_by){
+function claim(id, done){
   if(!ONLINE){ done(true); return; }
+  // "누가" 뿐 아니라 "몇 차 조사에서" 가져갔는지도 남긴다 → 새로고침 복구에 쓰인다
   roomRef('taken/'+id).transaction(
-    cur => (cur===null ? MYKEY : undefined),
+    cur => (cur===null ? MYKEY+'#'+round : undefined),
     (err, committed) => { committed ? done(true) : done(false); },
     false
   );
+}
+
+/* 서버 기록으로 내 단서함과 이번 라운드 조사 횟수를 되살린다.
+   새로고침·앱 종료 후 다시 들어와도 그대로 이어진다. */
+function locOfClue(c){
+  for(const k in LOC) if(LOC[k].clues.includes(c)) return k;
+  return null;
+}
+function restoreMine(){
+  if(!ONLINE) return;
+  found.clear(); roundDraw=[];
+  Object.entries(taken).forEach(([c,v])=>{
+    const [who,r] = String(v).split('#');
+    if(who!==MYKEY) return;
+    found.add(c);
+    if(Number(r)===round) roundDraw.push({c, loc:locOfClue(c)});
+  });
+  dock();
 }
 
 /* ══════════ 상태 ══════════ */
@@ -876,9 +896,9 @@ function rBook(){
       </button>
 
       <div class="c"><div class="lb">자기소개 · 이렇게 말하면 됩니다</div>
-        <div class="sayline">${ME.oneLine}</div>
-        <div class="saytag">여유가 있으면 이렇게 더</div>
-        <div class="say">${ME.selfIntro}</div></div>
+        <div class="say">${ME.selfIntro}</div>
+        <div class="sayadd">여기에 <b>성격과 말투</b>를 더해 당신만의 인물로 만들어주세요.<br>
+          아래 <b>말투</b>와 <b>지금 기분</b>을 참고하면 됩니다.</div></div>
 
       <div class="c"><div class="lb">말투</div>
         <div class="chips" style="justify-content:flex-start">${ME.persona.tone.map(t=>`<span>${t}</span>`).join('')}</div>
@@ -1222,6 +1242,16 @@ function showGate(){
   $('#gc').addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
   $('#gof').onclick=()=>{ ONLINE=false; document.getElementById('gate').style.display='none';
     render(); dock(); dockNet(); toast('오프라인 모드로 시작합니다'); };
+
+  // 같은 탭에서 새로고침한 경우 자동으로 다시 들어간다
+  const saved = (()=>{ try{ return sessionStorage.getItem('mmRoom'); }catch(e){ return null; } })();
+  if(saved && netReady && !url){
+    $('#gc').value=saved; $('#gg').disabled=true; $('#gg').textContent='다시 연결 중…';
+    joinRoom(saved, ()=>{ document.getElementById('gate').style.display='none';
+        render(); dock(); dockNet(); toast('이어서 진행합니다'); },
+      ()=>{ try{ sessionStorage.removeItem('mmRoom'); }catch(e){}
+        $('#gg').disabled=false; $('#gg').textContent='입장하기'; $('#gc').value=''; });
+  }
 }
 showGate();
 render(); dock();

@@ -311,6 +311,11 @@ main{overflow-y:auto!important;overflow-x:hidden}
   .vnote{padding:9px 12px!important;font-size:13.5px!important;line-height:1.5}
   .round .script{margin-bottom:7px!important}
 }
+
+.imgfail{background:rgba(224,160,74,.1);border:1px dashed rgba(224,160,74,.45);
+  border-radius:14px;padding:26px 20px;text-align:center;font-size:14px;line-height:1.7;color:#e0a04a}
+.imgfail b{font-family:var(--mono);font-size:13px;color:#f0c07a;display:inline-block;margin:6px 0}
+.imgfail span{display:block;font-size:12.5px;color:#8b8296;margin-top:4px}
 </style>
 <link rel="stylesheet" href="assets/visual-upgrade.css">
 <style>
@@ -661,9 +666,9 @@ const ROUNDS=[
  {n:'2차 회의',m:10,d:'증거를 들고 물어봅니다',
   s:'추궁하려면 <b>증거의 이름</b>이나 그 사람이 그 물건을 가졌다는 증거가 있어야 합니다.<br>추궁당한 사람은 반드시 답해야 합니다.',
 },
- {n:'최종 조사',m:5,d:'마지막으로 확인합니다',inv:1,
+ {n:'최종 조사',m:5,d:'마지막으로 확인합니다',inv:1,unseen:1,
   s:'놓친 것이 있는지 각자 확인하세요.'},
- {n:'최종 변론',m:6,d:'1인 1분 30초',unseen:1,
+ {n:'최종 변론',m:6,d:'1인 1분 30초',
   s:'누가 범인이라고 생각하는지, 왜 그런지 말해주세요.<br>본인이 결백한 이유도 함께 말합니다.'},
  {n:'최종 투표',m:3,d:'동시에 지목합니다',vote:2,
   s:'셋을 세면 동시에 손가락으로 범인을 가리켜주세요.<br>자기 자신은 못 뽑습니다. <b>이번이 진짜입니다.</b>'}
