@@ -326,6 +326,30 @@ main{overflow-y:auto!important;overflow-x:hidden}
   cursor:pointer;font-family:inherit;white-space:nowrap;transition:.15s}
 .bgmbtn:hover{background:rgba(169,138,224,.22)}
 .bgmbtn.off{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:#6b6478}
+
+/* 세 겹의 오해 — 도식 */
+.irony-hero{display:flex;align-items:center;justify-content:center;padding:clamp(18px,3vh,34px) 18px;
+  background:linear-gradient(160deg,rgba(169,138,224,.12),rgba(224,90,110,.08))}
+.irony-chain{display:flex;align-items:center;gap:clamp(6px,1.2vw,16px);flex-wrap:wrap;justify-content:center}
+.ic-node{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;padding:12px 16px;text-align:center;min-width:104px}
+.ic-node span{display:block;font-size:10.5px;color:#8b8296;font-weight:700;margin-bottom:5px;letter-spacing:.02em}
+.ic-node b{font-size:clamp(16px,2vw,21px);font-weight:800;color:#e8e2f0}
+.ic-node.warn{border-color:rgba(224,160,74,.45)} .ic-node.warn b{color:#f0c07a}
+.ic-node.fatal{border-color:rgba(240,80,100,.55);background:rgba(240,80,100,.1)}
+.ic-node.fatal b{color:#ff8f99}
+.ic-arrow{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:#a98ae0;
+  padding:0 2px;white-space:nowrap}
+.ic-arrow::after{content:'→';display:block;font-size:16px;color:#6b6478;margin-top:2px}
+.rv-blank{min-height:0}
+
+.drawset{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 14px}
+.drawset .dl{font-size:12px;font-weight:700;color:#8b8296}
+.dopts{display:flex;gap:5px}
+.dopts button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+  color:#b6adc4;border-radius:9px;width:34px;height:32px;font-family:var(--mono);
+  font-size:14px;font-weight:700;cursor:pointer}
+.dopts button.on{background:rgba(169,138,224,.2);border-color:rgba(169,138,224,.5);color:#c9a7ff}
 </style>
 <link rel="stylesheet" href="assets/visual-upgrade.css">
 <style>
@@ -463,6 +487,14 @@ main{overflow:hidden}
       </dl>
       <div class="qrbox" id="qrbox"></div>
       <div class="roomcard" id="roomcard"></div>
+    <div class="drawset" id="drawset">
+      <span class="dl">조사 횟수 · 라운드당</span>
+      <div class="dopts">
+        <button type="button" data-d="2">2</button>
+        <button type="button" class="on" data-d="3">3</button>
+        <button type="button" data-d="4">4</button>
+      </div>
+    </div>
       <div class="btns"><button class="b1" id="go">시작하기</button></div>
     </div>
   </section>
@@ -491,6 +523,7 @@ main{overflow:hidden}
     <div class="next" id="next"></div>
     <div class="script" id="script"></div>
     <div class="btns">
+      <button class="b2" id="prevStep">← 이전 단계</button>
       <button class="b2" id="pause">일시정지</button>
       <button class="b1" id="skip">다음 단계로</button>
       <button class="b2" id="plus">+1분</button>
@@ -738,12 +771,23 @@ const REVEAL = [
       <div class="collapse-chain"><div><span>기밀 서류 탈취</span><small>윤꽃집의 가방</small></div><i>→</i><div><span>언론 제보</span><small>모방범죄 이슈 덮기</small></div><i>→</i><div class="fatal"><span>불명예 해고</span><small>경력과 미래 붕괴</small></div></div>
       <blockquote class="rv-quote">사랑도, 경력도, 미래도 — 그날 한꺼번에 사라졌습니다.</blockquote>`},
   {k:'THE TRIGGER', h:'왜 하필 그날이었나',
-   n:'한소설은 협박편지를 윤꽃집이 보냈다고 오해했고, 파티에 초대해 아내 앞에서 망신을 주려 했습니다. 김안마가 그 계획을 윤꽃집에게 귀띔했습니다. 8년 전의 배신이 되풀이된다고 느낀 윤꽃집은 망신당하기 전에 먼저 죽이기로 결심했습니다.',
+   n:'한소설은 협박편지를 윤꽃집이 보냈다고 오해했고, 파티에 초대해 아내 앞에서 망신을 주려 했습니다. 그 계획을 윤꽃집에게 귀띔했습니다. 8년 전의 배신이 되풀이된다고 느낀 윤꽃집은 망신당하기 전에 먼저 죽이기로 결심했습니다.',
    b:`<div class="rv-visual cinematic"><img src="assets/reveal-trigger-v2.png" alt="따뜻한 실내 조명과 빗빛이 교차하는 꽃집에서 결심하는 윤꽃집"><span class="evidence-stamp">THE FINAL TRIGGER</span></div>
-      <div class="trigger-stack"><div><em>01</em><span>한소설이 협박편지를 윤꽃집의 소행으로 오해</span></div><div><em>02</em><span>파티에 불러 아내 앞에서 망신줄 계획</span></div><div><em>03</em><span>김안마가 그 계획을 윤꽃집에게 전달</span></div><div class="fatal"><em>04</em><span>“또 당하기 전에 먼저 죽인다.”</span></div></div>`},
+      <div class="trigger-stack"><div><em>01</em><span>한소설이 협박편지를 윤꽃집의 소행으로 오해</span></div><div><em>02</em><span>파티에 불러 아내 앞에서 망신줄 계획</span></div><div><em>03</em><span>그 계획을 윤꽃집에게 전달</span></div><div class="fatal"><em>04</em><span>“또 당하기 전에 먼저 죽인다.”</span></div></div>`},
   {k:'THE IRONY', h:'세 겹의 오해',
    n:'협박편지의 실제 발신자는 백비서였습니다. 한소설은 그 편지를 윤꽃집이 보냈다고 오해했고, 윤꽃집을 공개적으로 망신주려 했습니다. 윤꽃집은 편지와 아무 상관이 없었지만, 8년 전의 복수로 한소설을 죽이려 했습니다. 그리고 잘못 놓인 얼음 때문에 홍대표가 죽었습니다.',
-   b:`<div class="misunderstanding-map">
+   b:`<div class="rv-hero irony-hero">
+        <div class="irony-chain">
+          <div class="ic-node"><span>협박편지를 보낸 사람</span><b>백비서</b></div>
+          <div class="ic-arrow">오해</div>
+          <div class="ic-node warn"><span>한소설이 의심한 사람</span><b>윤꽃집</b></div>
+          <div class="ic-arrow">복수</div>
+          <div class="ic-node warn"><span>윤꽃집이 노린 사람</span><b>한소설</b></div>
+          <div class="ic-arrow">좌석 착오</div>
+          <div class="ic-node fatal"><span>실제로 죽은 사람</span><b>홍대표</b></div>
+        </div>
+      </div>
+      <div class="misunderstanding-map">
         <div class="person"><span>실제 발신자</span><b>백비서</b></div><div class="arrow"><small>협박편지</small><i>→</i></div>
         <div class="person suspect"><span>한소설의 오해</span><b>윤꽃집</b></div><div class="arrow"><small>공개 망신 계획</small><i>→</i></div>
         <div class="person fatal"><span>끝내 죽은 사람</span><b>홍대표</b></div>
@@ -872,7 +916,7 @@ function newCode(){
 function openRoom(){
   if(!netReady){ ONLINE=false; paintRoom(); paintRoomCard(); return; }
   ROOM=newCode();
-  roomRef().set({ round:0, phase:'프롤로그', vote:0, at:Date.now() })
+  roomRef().set({ round:0, phase:'프롤로그', vote:0, draws:3, at:Date.now() })
     .then(()=>{ ONLINE=true; paintRoom(); paintRoomCard(); watchVotes(); })
     .catch(e=>{ console.warn(e); ONLINE=false; paintRoom(); paintRoomCard(); });
 }
@@ -939,7 +983,7 @@ const ALLCLUE={
  seats:{n:'어긋난 상차림',w:'식당 · 원형 테이블',d:'시신이 앉은 자리만 냅킨 자국과 빵접시 위치가 옆자리들과 어긋나 있다.'},
  glass:{n:'물잔',w:'식당 · 원형 테이블',d:'접시 오른쪽 위에 놓인 물잔. 얼음이 거의 녹아 있다.'},
  tumbler:{n:'텀블러',w:'식당 · 사이드보드',d:'윤꽃집이 파티 인원수에 맞게 선물로 가져온 텀블러.'},
- wine:{n:'와인병',w:'식당 · 사이드보드',d:'김안마가 사 온 와인. 코르크가 따져 있고 모두의 잔에 따라졌다.'},
+ wine:{n:'와인병',w:'식당 · 사이드보드',d:'사 온 와인. 코르크가 따져 있고 모두의 잔에 따라졌다.'},
  body:{n:'1차 검안 소견',w:'식당 · 시신',d:'원형 테이블의 한 자리, <b>의자에 앉은 채 테이블 위로 엎어져 있다.</b> 일어선 흔적도 몸싸움 흔적도 없다.<br><br>사인 질식사 · 외상 없음 · 독물 반응 의심 · <b>입가에서 달큰하고 씁쓸한, 아몬드 같은 냄새</b>가 난다.<br>정밀 부검은 실시하지 않는다.'},
  soup:{n:'남은 에피타이저 수프',w:'주방 · 조리대',d:'홍대표 몫만 남아 있다.'},
  trash:{n:'살충제 용기',w:'주방 · 쓰레기통',d:'벌레약 용기가 버려져 있다.'},
@@ -1183,6 +1227,7 @@ function startRound(i){
   $('#script').classList.toggle('vote', !!r.vote);
   $('#next').textContent = i+1<ROUNDS.length ? `다음 — ${ROUNDS[i+1].n}` : '다음 — 진상 공개';
   $('#pause').textContent='일시정지';
+  const pb=$('#prevStep'); if(pb) pb.disabled = ri<=0;
   if(ONLINE) pushRound(i);
   if(r.vote) setTimeout(paintVote,300);
   if(r.unseen) setTimeout(paintUnseen,300);
@@ -1349,7 +1394,11 @@ function paintRev(){
   $('#rvbody').innerHTML=`<div class="rvcard${r.big?' big':''}">
     <div class="kk">${r.k}</div><h2>${r.h}</h2><p class="rv-narration">${r.n||''}</p>${r.b}</div>`;
   const card=$('#rvbody .rvcard');
-  const visual=card?.querySelector('.rv-hero,.rv-visual,.rv-finale');
+  let visual=card?.querySelector('.rv-hero,.rv-visual,.rv-finale');
+  if(!visual && card){           // 시각 요소가 없는 장에서도 자막 무대를 만든다
+    visual=document.createElement('div'); visual.className='rv-visual rv-blank';
+    card.insertBefore(visual, card.querySelector('.rv-narration')?.nextSibling || null);
+  }
   if(visual){
     const stage=document.createElement('div'); stage.className='rv-stage';
     card.insertBefore(stage,visual); stage.appendChild(visual);
@@ -1424,6 +1473,10 @@ $('#proPrev').onclick = ()=>{
   if(pro<1)return;const playing=proMode==='playing';pro--;proElapsed=0;proFinished=false;paintPro();proAudioSync();if(playing)runProScene();
 };
 $('#pause').onclick = ()=>{ paused=!paused; $('#pause').textContent=paused?'계속하기':'일시정지'; };
+$('#prevStep').onclick = ()=>{
+  if(ri<=0){ toast('첫 단계입니다'); return; }
+  clearInterval(tick); startRound(ri-1);
+};
 $('#skip').onclick = ()=>{ clearInterval(tick); startRound(ri+1); };
 $('#plus').onclick = ()=>{ left+=60; paint(); toast('1분 추가'); };
 $('#rvPlay').onclick = ()=>{
@@ -1456,6 +1509,12 @@ $('#tSched').onclick = ()=>{
 /* 나레이션 미리 받아두기 · 캐릭터 QR 표시 */
 try{ initProAudio(); }catch(e){ console.warn(e); }
 try{ paintQR(); }catch(e){ console.warn(e); }
+try{
+  document.querySelectorAll('#drawset [data-d]').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('#drawset [data-d]').forEach(x=>x.classList.toggle('on', x===b));
+    if(ONLINE) roomRef('draws').set(Number(b.dataset.d)).catch(()=>{});
+  });
+}catch(e){ console.warn(e); }
 try{ initBgm(); paintBgmBtn();
      document.getElementById('bgmBtn').onclick=toggleBgm; }catch(e){ console.warn(e); }
 </script>

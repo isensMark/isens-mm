@@ -145,6 +145,24 @@ body.culprit .sum b{background:var(--red)}
   color:var(--g500);margin-bottom:4px}
 
 /* 추궁 */
+.guidebox{background:var(--blue-l);border-radius:14px;padding:14px 16px;margin-bottom:12px;
+  font-size:14.5px;line-height:1.65;color:var(--g700)}
+.guidebox b{color:var(--g900);font-weight:800}
+.acc-h{font-size:14px;font-weight:800;color:var(--g600);margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.acc-h span{font-size:12.5px;font-weight:600;color:var(--g500)}
+.acc{background:var(--w);border-radius:16px;box-shadow:var(--sh);margin-bottom:8px;overflow:hidden}
+.acc.hot{background:var(--red-l);box-shadow:none}
+.acc .q{padding:15px 16px;font-size:16.5px;font-weight:800;color:var(--g900);
+  cursor:pointer;display:flex;align-items:center;gap:10px;letter-spacing:-.02em;line-height:1.4}
+.acc .q .ar{margin-left:auto;color:var(--g400);font-size:14px;transition:.2s;flex:0 0 auto}
+.acc.open .q .ar{transform:rotate(180deg)}
+.acc .a{display:none;padding:0 16px 16px;font-size:15.5px;line-height:1.75;color:var(--g700)}
+.acc.open .a{display:block}
+.acc .a b{color:var(--g900)}
+.acc .a ul{display:grid;gap:8px}
+.acc .a .gk{display:block;font-size:16px;color:var(--g900);margin:12px 0 4px}
+.acc .a .gk:first-child{margin-top:0}
+.acc .a .gv{display:block;margin-bottom:4px}
 .cri{background:var(--w);border-radius:18px;box-shadow:var(--sh);margin-bottom:10px;overflow:hidden}
 .cri .q{padding:17px 18px;font-size:17px;font-weight:800;color:var(--g900);
   cursor:pointer;display:flex;align-items:center;gap:10px;letter-spacing:-.02em}
@@ -285,6 +303,8 @@ body.culprit .sum b{background:var(--red)}
   background:var(--w);border:2px solid transparent;border-radius:18px;padding:16px 18px;
   box-shadow:var(--sh);font-family:var(--sans)}
 .vopt.on{border-color:var(--blue);background:var(--blue-l)}
+.vopt.done{cursor:default;opacity:.5}
+.vopt.on.done{opacity:1}
 .vopt .va{width:46px;height:46px;flex:0 0 auto}
 .vopt .va svg{width:100%;height:100%}
 .vopt .va .pav{width:100%;height:100%;border-radius:12px;object-fit:cover;display:block}
@@ -608,7 +628,7 @@ const ME = {
     {q:'서랍을 열어주시겠습니까?', a:'<b>안에 든 것</b> — 좌석 배치 메모, 정략결혼 계약서<br><b>판단</b> — 좌석 메모는 <b>당신에게 유리합니다.</b> 아내가 앉은 자리가 원래 당신 자리였다는 증거니까요. 다만 계약서가 함께 나옵니다.'}
   ],
   rel:[['홍대표','아내이자 통제자. 경제와 커리어 양쪽에서 우위'],['윤꽃집','옛 연인이자 악연. 상호 적대'],
-    ['유감독','이해관계로 밀착. 협력과 불신이 공존'],['백비서','경계 대상. 아내 편에 선 사람'],['김안마','불신. 내 정보를 아내에게 보고한다']]
+    ['유감독','이해관계로 밀착. 협력과 불신이 공존'],['백비서','경계 대상. 아내 편에 선 사람'],]
 };
 
 /* ══════════ 단서 ══════════ */
@@ -618,7 +638,7 @@ const C={
  seats:{n:'어긋난 상차림',w:'식당 · 원형 테이블',d:'시신이 앉은 자리만 냅킨 자국과 빵접시 위치가 옆자리들과 어긋나 있다.'},
  glass:{n:'물잔',w:'식당 · 원형 테이블',d:'접시 오른쪽 위에 놓인 물잔. 얼음이 거의 녹아 있다.'},
  tumbler:{n:'텀블러',w:'식당 · 사이드보드',d:'윤꽃집이 파티 인원수에 맞게 선물로 가져온 텀블러.'},
- wine:{n:'와인병',w:'식당 · 사이드보드',d:'김안마가 사 온 와인. 코르크가 따져 있고 모두의 잔에 따라졌다.'},
+ wine:{n:'와인병',w:'식당 · 사이드보드',d:'만찬에 곁들인 와인. 코르크가 따져 있고 모두의 잔에 따라졌다.'},
  body:{n:'1차 검안 소견',w:'식당 · 시신',d:'원형 테이블의 한 자리, <b>의자에 앉은 채 테이블 위로 엎어져 있다.</b> 일어선 흔적도 몸싸움 흔적도 없다.<br><br>사인 질식사 · 외상 없음 · 독물 반응 의심 · <b>입가에서 달큰하고 씁쓸한, 아몬드 같은 냄새</b>가 난다.<br>정밀 부검은 실시하지 않는다.'},
  soup:{n:'남은 에피타이저 수프',w:'주방 · 조리대',d:'홍대표 몫만 남아 있다.'},
  trash:{n:'살충제 용기',w:'주방 · 쓰레기통',d:'벌레약 용기가 버려져 있다.'},
@@ -790,17 +810,19 @@ function joinRoom(code, ok, fail){
   roomRef('at').once('value').then(s=>{
     if(!s.exists()){ fail('그런 방이 없습니다'); return; }
     ONLINE=true;
-    roomRef('taken').on('value', s=>{ taken=s.val()||{}; restoreMine(); if(tab==='inv') render(); dockNet(); });
+    let firstTaken=true;
+    roomRef('taken').on('value', s=>{ taken=s.val()||{}; restoreMine(firstTaken); firstTaken=false; if(tab==='inv') render(); dockNet(); });
     roomRef('round').on('value', s=>{
       const r=s.val()||0;
       if(r && r!==srvRound){ srvRound=r; round=r; nav=[];
         if(r>=2) susOpen=true;
-        restoreMine();
+        restoreMine(true);
         toast(`${ROUND_NAME[r]}가 시작되었습니다`); if(tab==='inv') render(); }
       srvRound=r; dockNet();
     });
     roomRef('phase').on('value', s=>{ srvPhase=s.val()||''; dockNet(); });
     roomRef('vote').on('value', s=>{ srvVote=s.val()||0; render(); });
+    roomRef('draws').on('value', s=>{ const n=Number(s.val()); if(n>0 && n!==DRAWS_PER_ROUND){ DRAWS_PER_ROUND=n; if(tab==='inv') render(); } });
     roomRef('votes').on('value', s=>{ myVotes=s.val()||{}; if(srvVote) render(); });
     ok();
   }).catch(()=>fail('연결에 실패했습니다'));
@@ -823,15 +845,22 @@ function locOfClue(c){
   for(const k in LOC) if(LOC[k].clues.includes(c)) return k;
   return null;
 }
-function restoreMine(){
+/* 서버 기록으로 복원한다.
+   주의: 남이 단서를 뽑을 때마다 호출되므로, 이번 라운드 조사 횟수까지
+   매번 다시 계산하면 내 마지막 뽑기가 아직 서버에 안 실려 카운트가 어긋난다.
+   그래서 횟수 복원은 '입장 직후'와 '라운드 전환' 때만 한다. */
+function restoreMine(full){
   if(!ONLINE) return;
-  found.clear(); roundDraw=[];
+  found.clear();
+  const mineThisRound=[];
   Object.entries(taken).forEach(([c,v])=>{
     const [who,r] = String(v).split('#');
     if(who!==MYKEY) return;
     found.add(c);
-    if(Number(r)===round) roundDraw.push({c, loc:locOfClue(c)});
+    if(Number(r)===round) mineThisRound.push({c, loc:locOfClue(c)});
   });
+  const cur=new Set(roundDraw.map(x=>x.c));
+  if(full || mineThisRound.length > cur.size) roundDraw = mineThisRound;
   dock();
 }
 
@@ -839,12 +868,12 @@ function restoreMine(){
 const found=new Set(), starred=new Set();
 let revealed=false, tab='book', bTab='me', iTab='site', nav=[];
 let round=1, roundDraw=[];              // roundDraw = 이번 라운드에 뽑은 단서
-const DRAWS_PER_ROUND = 3;
+let DRAWS_PER_ROUND = 3;   // 공용 화면에서 바꿀 수 있다
 const ROUND_NAME = {1:'1차 조사', 2:'2차 조사', 3:'최종 조사'};
 const $=s=>document.querySelector(s), M=()=>document.getElementById('main');
 const CODE='4726';
 
-const drawsLeft = () => DRAWS_PER_ROUND - roundDraw.length;
+const drawsLeft = () => Math.max(0, DRAWS_PER_ROUND - new Set(roundDraw.map(x=>x.c)).size);
 
 /* 방에 남아 있는 단서 수 — 지난 라운드는 전원 소진, 이번 라운드는 내 몫만 반영 */
 
@@ -864,17 +893,21 @@ function rVote(){
         : '이번이 진짜입니다. 신중하게 고르세요'}</p>
     </div>
     <div class="vopts">${ORDER.filter(k=>k!==MYKEY).map(k=>
-      `<button class="vopt ${mine===k?'on':''}" data-v="${k}">
+      `<button class="vopt ${mine===k?'on':''} ${mine?'done':''}" data-v="${k}" ${mine?'disabled':''}>
         <span class="va">${AV[SUSPECTS[k].av]}</span>
         <span class="vnm">${NAMES[k]}</span>
         ${mine===k?'<span class="vck">✓</span>':''}</button>`).join('')}</div>
     <div class="vstat">${mine?`<b>${NAMES[mine]}</b> 님을 지목했습니다 · `:''}${done} / 4 완료</div>
-    ${mine?`<p style="text-align:center;font-size:14px;color:var(--g500);margin-top:8px">
-      다시 눌러 바꿀 수 있습니다</p>`:''}`;
-  M().querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{
+    ${mine?`<p style="text-align:center;font-size:14px;color:var(--red);margin-top:8px;font-weight:700">
+      한 번 지목하면 바꿀 수 없습니다</p>`:''}`;
+  if(!mine) M().querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{
     if(!ONLINE){ toast('서버에 연결되어 있지 않습니다'); return; }
-    roomRef(`votes/v${srvVote}/${MYKEY}`).set(b.dataset.v)
-      .then(()=>toast(`${NAMES[b.dataset.v]} 지목`)).catch(()=>toast('전송 실패'));
+    if(!confirm(`${NAMES[b.dataset.v]} 님을 지목합니다.\n한 번 지목하면 바꿀 수 없습니다.`)) return;
+    M().querySelectorAll('[data-v]').forEach(x=>x.disabled=true);
+    roomRef(`votes/v${srvVote}/${MYKEY}`).transaction(
+      cur => (cur===null ? b.dataset.v : undefined),
+      (e,ok)=>{ ok ? toast(`${NAMES[b.dataset.v]} 지목`) : toast('이미 지목했습니다'); render(); },
+      false);
   });
 }
 
@@ -889,7 +922,7 @@ function render(){
 
 /* ── 캐릭터북 ── */
 function rBook(){
-  const T=[['me','나'],['truth','진실'],['tl','타임라인'],['plan','전략']];
+  const T=[['me','내 소개'],['truth','내 비밀'],['tl','내 행적'],['plan','대응법']];
   let h=`<div class="sub">${T.map(([k,l])=>`<button class="${bTab===k?'on':''}" data-b="${k}">${l}</button>`).join('')}</div>`;
   if(bTab==='me'){
     h+=`<div class="c prof">${AV[ME.av]}
@@ -923,37 +956,50 @@ function rBook(){
 
       <div class="c"><div class="lb">인물 관계</div>
         ${ME.rel.map(([n,d])=>`<p style="font-size:16px"><b>${n}</b> · ${d}</p>`).join('')}</div>
-      <div class="c blue"><div class="lb">이 자리에 없는 두 사람</div>
+      <div class="c blue"><div class="lb">이 자리에 없는 사람</div>
         <p><b>홍대표</b> 35 · 여 · 영화제작사 대표. 한소설의 아내. <b class="hl">오늘 저녁 사망했다</b></p>
-        <p><b>김안마</b> 27 · 남 · 부부의 전담 안마사. 오늘 와인을 사 왔다. 시력이 나빠 지팡이를 짚는다</p></div>`;
+</div>`;
   }
   if(bTab==='truth'){
+    h+=`<div class="guidebox">남들은 모르는 <b>당신만의 사정</b>입니다.<br>
+      추궁당하면 답해야 하지만, 먼저 말할 필요는 없습니다.</div>`;
     h+=`<div class="sum">${ME.summary.map((s,i)=>`<div><b>${i+1}</b><span>${s}</span></div>`).join('')}</div>`;
-    h+=ME.truth.map(t=>`<div class="c"><h4>${t.h}</h4><p>${t.p}</p></div>`).join('');
-    h+=`<div class="c ${ME.trickHot?'red':''}"><div class="lb">${ME.trickTitle}</div>
-      <ul>${ME.trick.map((x,i)=>`<li><b>${i+1}.</b> ${x}</li>`).join('')}</ul></div>`;
+    h+=`<div class="acc-h">자세한 사정 <span>눌러서 펼치기</span></div>`;
+    h+=ME.truth.map((t,i)=>`<div class="acc" data-ac="t${i}">
+      <div class="q">${t.h}<span class="ar">▾</span></div><div class="a">${t.p}</div></div>`).join('');
+    h+=`<div class="acc ${ME.trickHot?'hot':''}" data-ac="trick">
+      <div class="q">${ME.trickTitle}<span class="ar">▾</span></div>
+      <div class="a"><ul>${ME.trick.map((x,i)=>`<li><b>${i+1}.</b> ${x}</li>`).join('')}</ul></div></div>`;
   }
   if(bTab==='tl'){
-    h+=`<div class="c"><div class="lb">타임라인</div><p style="margin:0">${ME.tlNote}</p></div>
+    h+=`<div class="guidebox">사건 당일 <b>당신이 실제로 한 일</b>입니다.<br>${ME.tlNote}</div>
       <div class="tl">${ME.timeline.map(r=>`<div class="row ${r.key?'key':''}">
         <time>${r.t}</time><div class="dot"></div>
         <div><div class="bx">${r.real}</div>
         ${r.fake?`<div class="fake"><em>남에게 말할 것</em>${r.fake}</div>`:''}</div></div>`).join('')}</div>`;
   }
   if(bTab==='plan'){
-    h+=`<div class="c"><div class="lb">숨겨야 할 것</div>
-      ${ME.goals.map(([g,d])=>`<h4>${g}</h4><p>${d}</p>`).join('')}</div>
-      <div class="c red"><div class="lb">절대 금지</div>
-        <ul>${ME.never.map(x=>`<li>${x}</li>`).join('')}</ul></div>
-      <div class="c amber"><div class="lb">먼저 꺼낼 이야기</div><p>${ME.opening}</p></div>
-      <div class="gh"><span class="gt">추궁 대응</span><span class="gn">눌러서 펼치기</span></div>
-      ${ME.crisis.map((c,i)=>`<div class="cri" data-cr="${i}">
-        <div class="q">“${c.q}”<span class="ar">▾</span></div><div class="a">${c.a}</div></div>`).join('')}`;
+    h+=`<div class="guidebox">누가 물어보면 <b>이렇게 답하세요</b>.<br>
+      질문을 눌러 답변을 확인할 수 있습니다.</div>`;
+    h+=`<div class="acc-h">추궁받을 때 <span>눌러서 펼치기</span></div>`;
+    h+=ME.crisis.map((c,i)=>`<div class="acc" data-ac="c${i}">
+      <div class="q">“${c.q}”<span class="ar">▾</span></div><div class="a">${c.a}</div></div>`).join('');
+    h+=`<div class="acc-h">그 외</div>`;
+    h+=`<div class="acc" data-ac="g"><div class="q">숨겨야 할 것<span class="ar">▾</span></div>
+      <div class="a">${ME.goals.map(([g,d])=>`<b class="gk">${g}</b><span class="gv">${d}</span>`).join('')}</div></div>`;
+    h+=`<div class="acc hot" data-ac="n"><div class="q">절대 하면 안 되는 것<span class="ar">▾</span></div>
+      <div class="a"><ul>${ME.never.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`;
+    h+=`<div class="acc" data-ac="o"><div class="q">먼저 꺼낼 이야기<span class="ar">▾</span></div>
+      <div class="a">${ME.opening}</div></div>`;
   }
   M().innerHTML=h;
   if($('#sec')) $('#sec').onclick=()=>{ revealed=!revealed; rBook(); };
   M().querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{bTab=b.dataset.b;render();});
-  M().querySelectorAll('[data-cr]').forEach(el=>el.querySelector('.q').onclick=()=>el.classList.toggle('open'));
+  M().querySelectorAll('[data-ac]').forEach(el=>el.querySelector('.q').onclick=()=>{
+    const wasOpen=el.classList.contains('open');
+    M().querySelectorAll('[data-ac]').forEach(x=>x.classList.remove('open'));
+    if(!wasOpen){ el.classList.add('open'); el.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+  });
 }
 
 
@@ -1059,6 +1105,13 @@ function planSVG(){
 
 function rMap(){
   $('#tt').textContent='조사';
+  if(ONLINE && !srvRound){
+    M().innerHTML=`<div class="warrant"><div class="ic">🔒</div>
+      <div class="wt">아직 조사할 수 없습니다</div>
+      <div class="wd">공용 화면에서 <b>1차 조사</b>가 시작되면 열립니다.<br>
+        그때까지 <b>캐릭터북</b>을 읽어주세요.</div></div>`;
+    return;
+  }
   const used=roundDraw.length, left=drawsLeft();
   let h=`<div class="rstat">
     <div class="rl"><b>${ROUND_NAME[round]}</b><span>${left>0?`조사 기회 ${left}회 남음`:'조사 완료'}</span></div>
@@ -1120,6 +1173,7 @@ function rLoc(key){
 }
 
 function tryDig(key,attempt){
+  if(drawsLeft()<=0){ toast('이번 라운드 조사 기회를 모두 썼습니다'); render(); return; }
   const pool=poolAt(key);
   if(!pool.length || attempt>4){ emptyDig(key); return; }
   const pick=pool[Math.floor(Math.random()*pool.length)];
@@ -1127,7 +1181,10 @@ function tryDig(key,attempt){
   const btn=$('#dig'); if(btn){ btn.disabled=true; btn.textContent='조사 중…'; }
   claim(id, ok=>{
     if(!ok){ tryDig(key,attempt+1); return; }
-    found.add(id); roundDraw.push({c:id, loc:key}); dock();
+    if(drawsLeft()<=0){ render(); return; }   // 늦게 도착한 응답 차단
+    found.add(id);
+    if(!roundDraw.some(x=>x.c===id)) roundDraw.push({c:id, loc:key});
+    dock();
     nav=[{t:'clue',c:id,back:key}]; render();
   });
 }
