@@ -687,6 +687,11 @@ const SUSPECTS={
 /* 결정적 증거 — 1차 조사에서는 나오지 않는다 */
 const KEY_CLUES=new Set(['ice','water','memo','mold','awl','dry','plan','cyan']);
 
+/* 본인이 뽑을 수 없는 단서
+   자기 공간은 조사할 수 있지만, 진범이 쥐면 게임이 막히는 것만 막는다.
+   얼음틀은 트릭 전체의 출발점이라 진범 손에 들어가면 안 된다. */
+const BLOCK_BY={ yun:['mold'], han:[], bak:[], yu:[] };
+
 /* 모든 조사 장소를 한 곳에 모은다 */
 const LOC={};
 Object.entries(PLACES).forEach(([k,p])=>{
@@ -714,10 +719,16 @@ function buildDeal(){
     if(l.zone==='site') site.push({c,loc:l.key,room:l.room});
     else (sus[l.owner]=sus[l.owner]||[]).push({c,loc:l.key,room:l.room});
   }));
-  shuf(site,SEED).forEach((x,i)=>hand[ORDER[i%4]].push(x));
+  shuf(site,SEED).forEach((x,i)=>{
+    const pool=ORDER.filter(k=>!(BLOCK_BY[k]||[]).includes(x.c));
+    hand[pool[i%pool.length]].push(x);
+  });
   Object.entries(sus).forEach(([sk,arr])=>{
-    const others=ORDER.filter(k=>k!==sk);
-    shuf(arr, SEED+keyNum(sk)).forEach((x,i)=>hand[others[i%3]].push(x));
+    shuf(arr, SEED+keyNum(sk)).forEach((x,i)=>{
+      // 특정 인물이 못 갖는 단서는 그 사람을 빼고 돌린다
+      const pool=ORDER.filter(k=>!(BLOCK_BY[k]||[]).includes(x.c));
+      hand[pool[i%pool.length]].push(x);
+    });
   });
   const seq={};
   ORDER.forEach(k=>{
@@ -1002,11 +1013,11 @@ hall:()=>`<svg class="scene" viewBox="0 0 400 210">
 /* ── 조사 ── */
 function canDraw(c){ return round>=2 || !KEY_CLUES.has(c); }
 
+const MY_BLOCK = new Set(BLOCK_BY[MYKEY] || []);
 function poolAt(key){
   const l=LOC[key];
-  if(l.zone==='sus' && l.owner===MYKEY) return [];
-  if(ONLINE) return l.clues.filter(c=>!taken[c] && canDraw(c));
-  return (DEAL[MYKEY][round-1]||[]).filter(x=>x.loc===key && !found.has(x.c));
+  if(ONLINE) return l.clues.filter(c=>!taken[c] && canDraw(c) && !MY_BLOCK.has(c));
+  return (DEAL[MYKEY][round-1]||[]).filter(x=>x.loc===key && !found.has(x.c) && !MY_BLOCK.has(x.c));
 }
 function leftAt(key){
   const l=LOC[key];
@@ -1103,8 +1114,7 @@ function rLoc(key){
     <h3>${l.name}</h3>
     <p style="margin:0 0 4px">${own?'당신의 공간입니다':l.sub||''}</p>
     <div class="bignum">${n}<span>개 남음</span></div>
-    ${own ? `<div class="lockmsg">경찰은 당신에게 당신 집 증거를 맡기지 않습니다</div>`
-      : left===0 ? `<div class="lockmsg">이번 라운드 조사를 모두 마쳤습니다</div>`
+    ${left===0 ? `<div class="lockmsg">이번 라운드 조사를 모두 마쳤습니다</div>`
       : `<button class="act" id="dig">여기를 조사한다 <span class="cnt">${left}회 남음</span></button>`}
     <button class="act g" id="b2">다른 곳 보기</button></div>`;
   M().innerHTML=h;
